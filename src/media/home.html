@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src {{cspSource}};">
+
+    <link rel="stylesheet" href="{{styleUri}}">
+    <script type="module" src="{{toolkitUri}}"></script>
+
+    <title>SkillsBoot Manager</title>
+</head>
+
+<body>
+    <main>
+        <div id="home-page">
+            <section class="card-header">
+                <h3>Available Instructions</h3>
+                <div style="display: flex; gap: 8px;">
+                    <vscode-button id="go-to-create" appearance="primary">
+                        <span slot="start" class="codicon codicon-add"></span>
+                        New
+                    </vscode-button>
+                    <vscode-button id="go-to-import" appearance="secondary">
+                        <span slot="start" class="codicon codicon-cloud-download"></span>
+                        Import
+                    </vscode-button>
+                </div>
+            </section>
+
+            <div id="instruction-list">
+                <div class="empty-state" style="border:none; padding: 40px 0;">
+                    <div class="spinner"></div>
+                    <p style="color: var(--vscode-descriptionForeground);">Scanning ~/.skillsboot/templates ...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="create-page" class="hidden">
+            <section>
+                <a href="#" id="back-to-home" class="nav-link"
+                    style="color: var(--vscode-textLink-foreground); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px;">
+                    <span class="codicon codicon-arrow-left"></span>
+                    Back to Overview
+                </a>
+
+                <h2 id="form-title" style="margin: 0 0 20px 0; font-weight: 600;">Initialize New Instruction</h2>
+
+                <div id="create-error-banner"
+                    style="display: none; background: var(--vscode-statusBarItem-errorBackground); color: var(--vscode-statusBarItem-errorForeground); padding: 8px 12px; margin-bottom: 20px; border-radius: 4px; font-size: 12px;">
+                </div>
+
+                <div class="instruction-card" style="margin-top: 10px; border: 1px solid var(--vscode-widget-border);">
+                    <div class="form-group">
+                        <label for="inst-name"
+                            style="display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; opacity: 0.8;">Instruction
+                            Name <span class="required">*</span></label>
+                        <vscode-textfield id="inst-name" placeholder="e.g. backend-api (slug format)"
+                            style="width: 100%;"></vscode-textfield>
+                        <div id="name-error"
+                            style="color: var(--vscode-errorForeground); font-size: 11px; margin-top: 4px; display: none;">
+                            Use only letters, numbers, hyphens and underscores.
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label for="inst-desc"
+                            style="display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; opacity: 0.8;">Detailed
+                            Description</label>
+                        <vscode-textarea id="inst-desc" placeholder="What coding standards or logic does this cover?"
+                            rows="4" style="width: 100%;"></vscode-textarea>
+                    </div>
+
+                    <div id="type-container" class="form-group" style="margin-top: 16px;">
+                        <label for="inst-type"
+                            style="display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; opacity: 0.8;">Target
+                            AI Tool <span class="required">*</span></label>
+                        <select id="inst-type" style="width: 100%;">
+                            <option value="">Select tool architecture...</option>
+                        </select>
+                    </div>
+
+                    <div id="mapping-container" class="form-group hidden" style="margin-top: 16px;">
+                        <label
+                            style="display: block; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; opacity: 0.8;">Components
+                            to Standardize</label>
+                        <vscode-multi-select id="inst-mapping" style="width: 100%;">
+                            <!-- Dynamic options -->
+                        </vscode-multi-select>
+                    </div>
+
+                    <div class="form-group"
+                        style="margin-top: 30px; border-top: 1px solid var(--vscode-divider); padding-top: 20px;">
+                        <vscode-button id="save-instruction" disabled style="width: 100%;">
+                            <span id="save-button-text">Create & Apply Instruction</span>
+                        </vscode-button>
+                    </div>
+
+                    <div id="creation-guidance" class="hidden"
+                        style="margin-top: 20px; padding: 12px; border: 1px solid var(--vscode-textSeparator-foreground); border-radius: 4px; background: var(--vscode-editor-inactiveSelectionBackground); opacity: 0.9;">
+                        <div style="display: flex; gap: 8px; align-items: flex-start;">
+                            <span class="codicon codicon-info"
+                                style="color: var(--vscode-infoForeground); margin-top: 2px;"></span>
+                            <div style="font-size: 12px; line-height: 1.5; color: var(--vscode-foreground);">
+                                This will initialize your instruction with <strong>standard sample rules, skills,
+                                    ...</strong>.
+                                <br /><br />
+                                Once created and applied, you can find the instructions in your project. Customize them
+                                for your
+                                specific standards.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="{{scriptUri}}"></script>
+</body>
+
+</html>
