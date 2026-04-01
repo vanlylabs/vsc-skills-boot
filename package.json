@@ -1,10 +1,6 @@
 {
   "name": "skills-boot",
   "publisher": "vanlylabs",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vanlylabs/skills-boot"
-  },
   "displayName": "Skills Boot: AI Skill Manager",
   "description": "Manage AI skills/rules/... in one central library for different AI coding agents. Standardize behavior across projects and switch seamlessly between GitHub Copilot, Claude, Cursor, and more.",
   "version": "1.0.0",
