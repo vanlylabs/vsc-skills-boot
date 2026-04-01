@@ -17,7 +17,9 @@ agentsmd/**
 rules/**
 skills/**
 workflows/**
-!out/extension.js
+out/**
+dist/**
+!dist/extension.js
 !architecture-flow.png
 *.vsix
 implementation_plan.md
