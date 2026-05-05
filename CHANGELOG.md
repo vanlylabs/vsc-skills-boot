@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] - 2026-05-05
+### Fixed
+- **Workspace Isolation**: Fixed an issue where the active instruction state would leak across different VS Code projects by switching from `GlobalState` to `WorkspaceState`.
+- **Filesystem Validation**: The UI now actively verifies the existence of symbolic links before showing an instruction as "Active," preventing desync between the manager and the actual project state.
+
 ## [1.0.0] - 2026-03-21
 ### Added
 - **Initial Release of SkillsBoot**: A centralized AI instruction and skill manager for VS Code.

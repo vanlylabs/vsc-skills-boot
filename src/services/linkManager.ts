@@ -66,6 +66,23 @@ export class LinkManager {
         }
     }
 
+    public verifyLinks(projectRoot: string, instructionId: string, toolId: string): boolean {
+        const handler = handlers[toolId];
+        if (!handler) return false;
+
+        const config = handler.getConfig();
+        for (const rootPath of config.root) {
+            const expanded = rootPath.replace('${basename}', instructionId);
+            const fullPath = path.join(projectRoot, expanded);
+            try {
+                if (!fs.lstatSync(fullPath).isSymbolicLink()) return false;
+            } catch (e) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private removePath(fullPath: string, allowDelete: boolean = false) {
         try {
             const stat = fs.lstatSync(fullPath);

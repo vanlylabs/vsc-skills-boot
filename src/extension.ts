@@ -244,11 +244,22 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
 
     public async refresh() {
         if (!this._view) return;
+
+        let selected = stateService.getActiveState();
+        const projectRoot = this._getProjectRoot();
+
+        // Validation: If state says applied but links are missing, treat as unapplied in UI
+        if (selected && projectRoot) {
+            if (!linkManager.verifyLinks(projectRoot, selected.id, selected.toolId)) {
+                selected = undefined;
+            }
+        }
+
         this._view.webview.postMessage({
             type: 'update',
             instructions: storageService.getAllInstructions(),
             availableTools: Object.values(handlers).map(h => h.getConfig()),
-            selected: stateService.getActiveState()
+            selected: selected
         });
     }
 

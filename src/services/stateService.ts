@@ -13,16 +13,16 @@ export class StateService {
     }
 
     public getActiveInstruction(): string | undefined {
-        return this._context?.globalState.get<string>('skillsboot.selectedInstruction');
+        return this._context?.workspaceState.get<string>('skillsboot.selectedInstruction');
     }
 
     public getActiveState(): AppState | undefined {
-        return this._context?.globalState.get<AppState>('skillsboot.selectedState');
+        return this._context?.workspaceState.get<AppState>('skillsboot.selectedState');
     }
 
     public async setActiveState(id: string | undefined, toolId: string | undefined) {
-        await this._context?.globalState.update('skillsboot.selectedInstruction', id);
-        await this._context?.globalState.update('skillsboot.selectedState', id ? { id, toolId } : undefined);
+        await this._context?.workspaceState.update('skillsboot.selectedInstruction', id);
+        await this._context?.workspaceState.update('skillsboot.selectedState', id ? { id, toolId } : undefined);
     }
 }
 

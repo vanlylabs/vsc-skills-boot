@@ -1,6 +1,6 @@
 # SkillsBoot 🚀
 
-**One source of truth for your AI instructions. Initialize once, share across projects, and switch seamlessly between different AI agents like GitHub Copilot, Claude Code, Cursor and ...**
+**One source of truth for your AI instructions. Initialize once, share across projects, and switch seamlessly between different AI agents like GitHub Copilot, Claude Code, Cursor, and more.**
 
 SkillsBoot is a VS Code extension that solves the "instruction fragmentation" problem. Instead of copy-pasting `.clinerules` or `AGENTS.md` between folders, you maintain a central library of **Master Instructions** and surgicaly link them to your projects.
 
@@ -8,64 +8,57 @@ SkillsBoot is a VS Code extension that solves the "instruction fragmentation" pr
 
 ## ✨ Why SkillsBoot?
 
-- **📦 One Source of Truth**: Stop managing duplicate rule files. Edit in one place, and your changes reflect everywhere instantly.
-- **🌐 Cross-Project Sharing**: Standardize your coding style, architectural patterns, and specialized skills across every repository in your workspace.
-- **🔄 Instant Agent Switching**: Want to switch a project from Claude Code to GitHub Copilot? Just flip a toggle. SkillsBoot handles the re-mapping of Instructions, and SKILLS automatically.
+*   **📦 One Source of Truth**: Manage your core AI guidelines, coding standards, and architectural patterns in one place. Edit once, sync everywhere.
+*   **🌐 Cross-Project Sharing**: Ensure consistency across your entire portfolio. Your custom "Senior Architect" persona follows you into every new project.
+*   **🔄 Instant Agent Switching**: Moving from Claude Code to GitHub Copilot? Just flip a toggle. SkillsBoot automatically re-maps and transforms your instructions for the target agent.
+*   **🔗 Symlink Architecture**: High-speed, zero-copy synchronization. Your AI agents see native files, but your system sees a perfectly managed central hub.
 
 ---
 
 ## 🛠 How It Works
 
-SkillsBoot acts as a central distribution hub for your AI context:
+SkillsBoot acts as a central distribution hub for your AI context, translating high-level templates into tool-specific configurations.
 
 ![SkillsBoot Architecture](architecture-flow.png)
 
-### The Three-Step Architecture
+1.  **Master Templates**: Your instructions are stored in a standard, portable format (containing `AGENTS.md`, `skills/`, etc.) in your home directory (`~/.skillsboot/templates`).
+2.  **Tool Adapters**: When you apply an instruction, SkillsBoot utilizes specialized adapters to transform the master template into a "Variant"—a version optimized for specific tools (like Cline or Claude Code).
+3.  **Project Linking**: SkillsBoot creates symbolic links in your project that point to these variants. This ensures AI agents find the files exactly where they expect them (e.g., `.clinerules`) while the actual data is managed by SkillsBoot.
 
-1.  **Master Templates**: Your instructions are stored in a standardized format (containing `rules/`, `skills/`, etc.) in your home directory (`~/.skillsboot/templates`).
-2.  **Tool Variants**: When you "Apply" an instruction to a project, SkillsBoot generates a "Variant"—a version of your template transformed for a specific tool (like Cline).
-3.  **Symlinks**: SkillsBoot creates symbolic links in your project that point to these variants. This means your AI agent sees its rules exactly where it expects them, but the "Source of Truth" remains central.
 ---
 
 ## 📂 Supported Tools/Config
 
-SkillsBoot recognizes and standardizes configuration for the following agents in project level:
+SkillsBoot standardizes configuration across the most popular AI coding assistants:
 
 | Agent | AGENTS.md | Skills |
 | :--- | :--- | :--- |
 | **GitHub Copilot** | `AGENTS.md` | `.github/skills/` |
 | **Claude Code** | `CLAUDE.md` | `.claude/skills/` |
-| **Kilo** | `AGENTS.md` | `.kilocode/skills/` |
 | **Cline** | `AGENTS.md` | `.clinerules/skills/` |
 | **Cursor** | `AGENTS.md` | `.cursor/skills/` |
+| **Kilo** | `AGENTS.md` | `.kilocode/skills/` |
 | **Codex** | `AGENTS.md` | `.agents/skills/` |
 | **Windsurf** | `AGENTS.md` | `.windsurf/skills/` |
 
-
-*More tools are being added regularly!*
 ---
 
-## 🚀 Usage
+## 🚀 Getting Started
 
-### 1. The Activity Bar
-Find the **Rocket Icon** in your VS Code Activity Bar to open the SkillsBoot Manager.
+### 1. Access the Manager
+Find the **Rocket Icon** in the VS Code Activity Bar to open the SkillsBoot Manager.
 
-### 2. Initializing a New Instruction
-Click **"New"** to scaffold a fresh instruction. You can choose which components (Rules, Skills, etc.) to include based on the target tool's capabilities.
+### 2. Initialize or Import
+*   **New Instruction**: Click **"New"** to scaffold a fresh master template from scratch.
+*   **Project Import**: Click **"Import"** if you're in a project with existing rules. SkillsBoot will automatically detect the tool, migrate your rules to the central library, and replace local files with managed links.
 
-#### 2.1. Importing Existing Rules
-Click **"Import"** when you are in a project that already has rules. SkillsBoot will:
-- Detect the tool being used.
-- Offer to move those files to your central library.
-- Replace the local project files with symlinks.
-
-### 3. Linking & Unlinking
-Use the dropdown on each instruction card to link it to the current project or switch between different tools (e.g., switch a project from "Cline" to "GitHub Copilot" mode).
+### 3. Apply & Scale
+Use the dropdown on any instruction card to link it to your current project. Switch agents on the fly by changing the tool selection—SkillsBoot handles the transition instantly.
 
 ---
 
-## 🔧 Installation & Setup
+## 🔧 Installation
 
-1. Install the extension in VS Code.
+1. Install the extension from the VS Code Marketplace.
 2. Open the SkillsBoot view in the Activity Bar.
-3. Start by creating your first "Master Instruction" or importing one from an existing project.
+3. Start centralizing your AI intelligence today.
