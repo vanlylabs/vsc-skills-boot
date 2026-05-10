@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] - 2026-05-10
+### Added
+- **MCP Server Sync**: Standardize Model Context Protocol (MCP) server configurations across agents.
+- **Bidirectional MCP Sync**: Edits made to MCP configs in your project are automatically synced back to the central template.
+- **Smart Format Conversion**: Automatic translation between TOML (Codex), JSON (Copilot/Cursor), and JSONC (Kilo) formats.
+- **Agent Support**: Added MCP support for GitHub Copilot, Claude Code, Cursor, Kilo, and Codex.
+
 ## [1.0.1] - 2026-05-05
 ### Fixed
 - **Workspace Isolation**: Fixed an issue where the active instruction state would leak across different VS Code projects by switching from `GlobalState` to `WorkspaceState`.

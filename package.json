@@ -7,7 +7,7 @@
   },
   "displayName": "Skills Boot: AI Skill Manager",
   "description": "Manage AI skills/rules/... in one central library for different AI coding agents. Standardize behavior across projects and switch seamlessly between GitHub Copilot, Claude, Cursor, and more.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -83,6 +83,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@vscode-elements/elements": "^2.4.0"
+    "@iarna/toml": "^2.2.5",
+    "@vscode-elements/elements": "^2.4.0",
+    "jsonc-parser": "^3.3.1"
   }
 }

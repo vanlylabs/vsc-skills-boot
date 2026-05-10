@@ -73,8 +73,8 @@ export async function syncTemplateToVariants(instructionName: string, skipToolId
     }
 }
 
-export async function syncInstruction(instructionName: string, direction: 'v2s' | 's2v' = 'v2s'): Promise<void> {
-    if (direction === 's2v') {
+export async function syncInstruction(instructionName: string, direction: 'a2b' | 'b2a' = 'a2b'): Promise<void> {
+    if (direction === 'b2a') {
         await syncTemplateToVariants(instructionName);
     }
 }

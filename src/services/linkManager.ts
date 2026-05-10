@@ -102,7 +102,7 @@ export class LinkManager {
             if (fs.existsSync(parent) && fs.readdirSync(parent).length === 0) {
                 // Don't delete root or critical folders
                 const basename = path.basename(parent);
-                if (['.vscode', '.github', '.kilocode', '.claude'].includes(basename)) {
+                if (['.vscode', '.github', '.kilocode', '.claude', '.cursor', '.codex', '.agents', '.kilo'].includes(basename)) {
                     fs.rmdirSync(parent);
                 }
             }

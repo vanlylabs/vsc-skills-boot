@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { manager } from './extensionManager';
-import { createWatcher, syncInstruction } from './sync';
-import { handlers, ToolConfig } from './handlers';
+import { handlers, ToolConfig, BaseHandler } from './handlers';
 import { storageService } from './services/storageService';
 import { stateService } from './services/stateService';
 import { linkManager } from './services/linkManager';
 import { WebviewMessage, InstructionMetadata } from './types';
-import { TEMPLATES_STORE, VARIANTS_STORE } from './config';
+import { TEMPLATES_STORE, VARIANTS_STORE, SYNC_DEBOUNCE_MS } from './config';
+import { createWatcher, syncTemplateToVariants, syncInstruction } from './sync';
 
 export function activate(context: vscode.ExtensionContext) {
     manager.init(context);
@@ -22,11 +22,16 @@ export function activate(context: vscode.ExtensionContext) {
 
     let activeWatcher: vscode.Disposable | null = null;
 
-    const startWatching = (instructionName: string) => {
+    const stopWatching = () => {
         if (activeWatcher) {
             activeWatcher.dispose();
             activeWatcher = null;
         }
+    };
+
+    const startWatching = (instructionName: string) => {
+        stopWatching();
+
         const watcher = createWatcher(instructionName);
         if (watcher) {
             activeWatcher = watcher;
@@ -39,10 +44,11 @@ export function activate(context: vscode.ExtensionContext) {
     const provider = new SkillsBootViewProvider(
         context.extensionUri,
         (id) => startWatching(id),
-        () => { if (activeWatcher) { activeWatcher.dispose(); activeWatcher = null; } }
+        () => stopWatching()
     );
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('skillsboot.mainView', provider));
     context.subscriptions.push(vscode.commands.registerCommand('skillsboot.refreshWebview', () => provider.refresh()));
+    context.subscriptions.push({ dispose: () => stopWatching() });
 }
 
 class SkillsBootViewProvider implements vscode.WebviewViewProvider {

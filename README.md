@@ -2,7 +2,7 @@
 
 **One source of truth for your AI instructions. Initialize once, share across projects, and switch seamlessly between different AI agents like GitHub Copilot, Claude Code, Cursor, and more.**
 
-SkillsBoot is a VS Code extension that solves the "instruction fragmentation" problem. Instead of copy-pasting `.clinerules` or `AGENTS.md` between folders, you maintain a central library of **Master Instructions** and surgicaly link them to your projects.
+SkillsBoot solves the "instruction fragmentation" problem. Instead of copy-pasting `skills` or `AGENTS.md` or `mcp config` between projects, you maintain a central library of **Master Instructions** and surgicaly link them to your projects.
 
 ---
 
@@ -19,11 +19,11 @@ SkillsBoot is a VS Code extension that solves the "instruction fragmentation" pr
 
 SkillsBoot acts as a central distribution hub for your AI context, translating high-level templates into tool-specific configurations.
 
-![SkillsBoot Architecture](architecture-flow.png)
+<img src="architecture-flow.png" width="400" alt="SkillsBoot Architecture">
 
-1.  **Master Templates**: Your instructions are stored in a standard, portable format (containing `AGENTS.md`, `skills/`, etc.) in your home directory (`~/.skillsboot/templates`).
-2.  **Tool Adapters**: When you apply an instruction, SkillsBoot utilizes specialized adapters to transform the master template into a "Variant"—a version optimized for specific tools (like Cline or Claude Code).
-3.  **Project Linking**: SkillsBoot creates symbolic links in your project that point to these variants. This ensures AI agents find the files exactly where they expect them (e.g., `.clinerules`) while the actual data is managed by SkillsBoot.
+1.  **Master Templates**: Your instructions are stored in a standard, portable format (containing `AGENTS.md`, `skills/`, and `mcp/mcp.json`) in your home directory (`~/.skillsboot/templates`).
+2.  **Tool Adapters**: When you apply an instruction, SkillsBoot utilizes specialized adapters to transform the master template into a "Variant"—a version optimized for specific tools (like Cline or Claude Code). MCP configurations are automatically converted between formats (TOML, JSON, JSONC) and key mappings.
+3.  **Project Linking & Syncing**: SkillsBoot creates symbolic links for files like `AGENTS.md` and `skills/`. For MCP configurations, it performs bidirectional synchronization—meaning you can edit your MCP config directly in your project, and SkillsBoot will sync it back to your central library.
 
 ---
 
@@ -31,15 +31,18 @@ SkillsBoot acts as a central distribution hub for your AI context, translating h
 
 SkillsBoot standardizes configuration across the most popular AI coding assistants:
 
-| Agent | AGENTS.md | Skills |
-| :--- | :--- | :--- |
-| **GitHub Copilot** | `AGENTS.md` | `.github/skills/` |
-| **Claude Code** | `CLAUDE.md` | `.claude/skills/` |
-| **Cline** | `AGENTS.md` | `.clinerules/skills/` |
-| **Cursor** | `AGENTS.md` | `.cursor/skills/` |
-| **Kilo** | `AGENTS.md` | `.kilocode/skills/` |
-| **Codex** | `AGENTS.md` | `.agents/skills/` |
-| **Windsurf** | `AGENTS.md` | `.windsurf/skills/` |
+| Agent | AGENTS.md | Skills | MCP Config |
+| :--- | :--- | :--- | :--- |
+| **GitHub Copilot** | `AGENTS.md` | `.github/skills/` | `.vscode/mcp.json` |
+| **Claude Code** | `CLAUDE.md` | `.claude/skills/` | `.mcp.json` |
+| **Cursor** | `AGENTS.md` | `.cursor/skills/` | `.cursor/mcp.json` |
+| **Kilo** | `AGENTS.md` | `.kilocode/skills/` | `.kilo/kilo.jsonc` |
+| **Codex** | `AGENTS.md` | `.agents/skills/` | `.codex/config.toml` |
+| **Windsurf** | `AGENTS.md` | `.windsurf/skills/` | _(Not supported)_ |
+| **Cline** | `AGENTS.md` | `.clinerules/skills/` | _(Not supported)_ |
+
+> [!NOTE]
+> **MCP Sync Limitations**: While SkillsBoot handles format conversion, not all MCP features are shared across all tools. Some agents support unique fields (e.g., Kilo's `timeout` or Codex's `env_vars`) that might be stored in the central template but won't be mapped to tools that don't support them.
 
 ---
 

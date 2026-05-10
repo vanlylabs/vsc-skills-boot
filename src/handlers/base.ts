@@ -14,6 +14,29 @@ export interface InstructionHandler {
 
 export type ToolFeature = 'Rules' | 'Workflows' | 'Skills' | 'AGENTS.md' | 'MCP';
 
+/**
+ * Central MCP configuration — the canonical shape stored in template mcp/mcp.json.
+ * Uses Claude Code's mcpServers format as the base.
+ */
+export class BaseMcpConfig {
+    mcpServers: Record<string, {
+        command?: string;
+        args?: string[];
+        env?: Record<string, string>;
+        env_vars?: string[];
+        url?: string;
+        headers?: Record<string, string>;
+        env_http_headers?: string[];
+        type?: string;
+        enabled?: boolean;
+        timeout?: number;
+        enabled_tools?: string[];
+        disabled_tools?: string[];
+        startup_timeout_sec?: number;
+        tool_timeout_sec?: number;
+    }> = {};
+}
+
 export interface ToolConfig {
     id: string;
     displayName: string;
@@ -35,11 +58,11 @@ export abstract class BaseHandler implements InstructionHandler {
 
     // --- Action Methods ---
     // subclasses implement these to define their unique paths
-    async applyRules(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s'): Promise<void> { }
-    async applySkills(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s'): Promise<void> { }
-    async applyWorkflows(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s'): Promise<void> { }
-    async applyAgentsmd(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s'): Promise<void> { }
-    async applyMCP(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s'): Promise<void> { }
+    async applyRules(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> { }
+    async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> { }
+    async applyWorkflows(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> { }
+    async applyAgentsmd(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> { }
+    async applyMCP(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> { }
 
     // --- UI Configuration ---
     getConfig(): ToolConfig {
@@ -49,11 +72,11 @@ export abstract class BaseHandler implements InstructionHandler {
     // --- InstructionHandler Implementation ---
     async syncSourceToVariant(sourceBase: string, variantPath: string): Promise<void> {
         if (!fs.existsSync(variantPath)) fs.mkdirSync(variantPath, { recursive: true });
-        await this.syncAll(sourceBase, variantPath, 's2v');
+        await this.syncAll(sourceBase, variantPath, 'b2a');
     }
 
     async syncVariantToSource(variantPath: string, sourceBase: string): Promise<void> {
-        await this.syncAll(sourceBase, variantPath, 'v2s');
+        await this.syncAll(sourceBase, variantPath, 'a2b');
     }
 
     async scaffold(targetDir: string, selectedFeatures: string[], embeddedTemplateRoot: string): Promise<void> {
@@ -69,11 +92,11 @@ export abstract class BaseHandler implements InstructionHandler {
             ? (selectedFeatures as ToolFeature[])
             : this.metadata.features;
 
-        // Import project -> Template store (v2s)
-        await this.applyFeatures(templatePath, projectRoot, 'v2s', features);
+        // Import project -> Template store (a2b)
+        await this.applyFeatures(templatePath, projectRoot, 'a2b', features);
 
-        // Update Variant root (s2v)
-        await this.applyFeatures(templatePath, variantPath, 's2v', features);
+        // Update Variant root (b2a)
+        await this.applyFeatures(templatePath, variantPath, 'b2a', features);
     }
 
     detect(projectRoot: string): boolean {
@@ -90,14 +113,14 @@ export abstract class BaseHandler implements InstructionHandler {
     }
 
     protected async applyCanonical(sourceRoot: string, targetRoot: string, features: ToolFeature[]): Promise<void> {
-        if (features.includes('Rules')) this.syncFolder(sourceRoot, targetRoot, 'rules', 'rules', 's2v');
-        if (features.includes('Workflows')) this.syncFolder(sourceRoot, targetRoot, 'workflows', 'workflows', 's2v');
-        if (features.includes('Skills')) this.syncFolder(sourceRoot, targetRoot, 'skills', 'skills', 's2v');
-        if (features.includes('AGENTS.md')) this.syncFolder(sourceRoot, targetRoot, 'agentsmd', 'agentsmd', 's2v');
-        if (features.includes('MCP')) this.syncFolder(sourceRoot, targetRoot, 'mcp', 'mcp', 's2v');
+        if (features.includes('Rules')) this.syncFolder(sourceRoot, targetRoot, 'rules', 'rules', 'b2a');
+        if (features.includes('Workflows')) this.syncFolder(sourceRoot, targetRoot, 'workflows', 'workflows', 'b2a');
+        if (features.includes('Skills')) this.syncFolder(sourceRoot, targetRoot, 'skills', 'skills', 'b2a');
+        if (features.includes('AGENTS.md')) this.syncFolder(sourceRoot, targetRoot, 'agentsmd', 'agentsmd', 'b2a');
+        if (features.includes('MCP')) this.syncFolder(sourceRoot, targetRoot, 'mcp', 'mcp', 'b2a');
     }
 
-    protected async applyFeatures(sourceRoot: string, targetRoot: string, direction: 's2v' | 'v2s', features: ToolFeature[]): Promise<void> {
+    protected async applyFeatures(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b', features: ToolFeature[]): Promise<void> {
         if (features.includes('Rules')) await this.applyRules(sourceRoot, targetRoot, direction);
         if (features.includes('Workflows')) await this.applyWorkflows(sourceRoot, targetRoot, direction);
         if (features.includes('Skills')) await this.applySkills(sourceRoot, targetRoot, direction);
@@ -105,23 +128,23 @@ export abstract class BaseHandler implements InstructionHandler {
         if (features.includes('MCP')) await this.applyMCP(sourceRoot, targetRoot, direction);
     }
 
-    protected async syncAll(sourceRoot: string, variantPath: string, direction: 's2v' | 'v2s'): Promise<void> {
+    protected async syncAll(sourceRoot: string, variantPath: string, direction: 'b2a' | 'a2b'): Promise<void> {
         await this.applyFeatures(sourceRoot, variantPath, direction, this.metadata.features);
     }
 
     // --- Common Sync Utilities ---
-    protected syncFolder(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 's2v' | 'v2s', recursive: boolean = true) {
-        const srcPath = path.join(direction === 's2v' ? sourceRoot : targetRoot, direction === 's2v' ? sourceRel : targetRel);
-        const destPath = path.join(direction === 's2v' ? targetRoot : sourceRoot, direction === 's2v' ? targetRel : sourceRel);
+    protected syncFolder(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 'b2a' | 'a2b', recursive: boolean = true) {
+        const srcPath = path.join(direction === 'b2a' ? sourceRoot : targetRoot, direction === 'b2a' ? sourceRel : targetRel);
+        const destPath = path.join(direction === 'b2a' ? targetRoot : sourceRoot, direction === 'b2a' ? targetRel : sourceRel);
 
         if (fs.existsSync(srcPath)) {
             copyFolderSync(srcPath, destPath, recursive);
         }
     }
 
-    protected syncFile(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 's2v' | 'v2s') {
-        const srcPath = path.join(direction === 's2v' ? sourceRoot : targetRoot, direction === 's2v' ? sourceRel : targetRel);
-        const destPath = path.join(direction === 's2v' ? targetRoot : sourceRoot, direction === 's2v' ? targetRel : sourceRel);
+    protected syncFile(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 'b2a' | 'a2b') {
+        const srcPath = path.join(direction === 'b2a' ? sourceRoot : targetRoot, direction === 'b2a' ? sourceRel : targetRel);
+        const destPath = path.join(direction === 'b2a' ? targetRoot : sourceRoot, direction === 'b2a' ? targetRel : sourceRel);
 
         if (fs.existsSync(srcPath)) {
             if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });
@@ -132,14 +155,14 @@ export abstract class BaseHandler implements InstructionHandler {
         }
     }
 
-    protected syncPattern(sourceRoot: string, targetRoot: string, sourceDirRel: string, targetPatternPathRel: string, direction: 's2v' | 'v2s') {
+    protected syncPattern(sourceRoot: string, targetRoot: string, sourceDirRel: string, targetPatternPathRel: string, direction: 'b2a' | 'a2b') {
         const patternBase = path.basename(targetPatternPathRel);
         const patternDir = path.dirname(targetPatternPathRel);
         const [prefix, suffix] = patternBase.split('${basename}');
         const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
         const regex = new RegExp(`^${escapeRegExp(prefix)}(.+)${escapeRegExp(suffix)}$`);
 
-        if (direction === 's2v') {
+        if (direction === 'b2a') {
             const srcPath = path.join(sourceRoot, sourceDirRel);
             if (!fs.existsSync(srcPath)) return;
             const destBaseFull = path.join(targetRoot, patternDir);
@@ -187,9 +210,9 @@ export abstract class BaseHandler implements InstructionHandler {
         }
     }
 
-    protected syncJson(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 's2v' | 'v2s', transform?: (data: any) => any) {
-        const srcPath = path.join(direction === 's2v' ? sourceRoot : targetRoot, direction === 's2v' ? sourceRel : targetRel);
-        const destPath = path.join(direction === 's2v' ? targetRoot : sourceRoot, direction === 's2v' ? targetRel : sourceRel);
+    protected syncJson(sourceRoot: string, targetRoot: string, sourceRel: string, targetRel: string, direction: 'b2a' | 'a2b', transform?: (data: any) => any) {
+        const srcPath = path.join(direction === 'b2a' ? sourceRoot : targetRoot, direction === 'b2a' ? sourceRel : targetRel);
+        const destPath = path.join(direction === 'b2a' ? targetRoot : sourceRoot, direction === 'b2a' ? targetRel : sourceRel);
 
         if (fs.existsSync(srcPath)) {
             if (!fs.existsSync(path.dirname(destPath))) fs.mkdirSync(path.dirname(destPath), { recursive: true });

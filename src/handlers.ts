@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { manager } from './extensionManager';
-import { InstructionHandler, ToolConfig } from './handlers/base';
+import { InstructionHandler, ToolConfig, BaseHandler } from './handlers/base';
 import { KiloHandler } from './handlers/kilo';
 import { ClineHandler } from './handlers/cline';
 import { ClaudeCodeHandler } from './handlers/claudecode';
@@ -10,7 +10,7 @@ import { CursorHandler } from './handlers/cursor';
 import { CodexHandler } from './handlers/codex';
 import { WindsurfHandler } from './handlers/windsurf';
 
-export { InstructionHandler, ToolConfig };
+export { InstructionHandler, ToolConfig, BaseHandler };
 
 export const handlers: Record<string, InstructionHandler & { getConfig(): ToolConfig }> = {
     'githubcopilot': new GithubCopilotHandler(),
