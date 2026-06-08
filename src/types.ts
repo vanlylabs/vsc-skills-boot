@@ -6,6 +6,11 @@ export interface InstructionMetadata {
     description: string;
 }
 
+export interface AgentLockState {
+    enabled: boolean;
+    toolId: string;
+}
+
 export type WebviewMessage =
     | { type: 'requestData' }
     | { type: 'create', name: string, description: string, toolId: string, features: string[] }
@@ -16,7 +21,9 @@ export type WebviewMessage =
     | { type: 'duplicate', sourceId: string, name: string, description: string }
     | { type: 'detectInstructions' }
     | { type: 'import', name: string, description: string, toolId: string, features: string[] }
-    | { type: 'update', instructions: InstructionMetadata[], availableTools: ToolConfig[], selected: any }
+    | { type: 'update', instructions: InstructionMetadata[], availableTools: ToolConfig[], selected: any, agentLock: AgentLockState | undefined }
     | { type: 'detected', toolId: string, name: string, description: string }
     | { type: 'detectionFailed' }
-    | { type: 'createError', message: string };
+    | { type: 'createError', message: string }
+    | { type: 'setAgentLock', toolId: string | null }
+    | { type: 'applyLocked', id: string };

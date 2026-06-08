@@ -28,7 +28,9 @@ export class ClaudeCodeHandler extends BaseHandler {
         id: 'claudecode',
         displayName: 'Claude Code',
         root: ['.claude', 'CLAUDE.md', '.mcp.json'],
-        features: ['Skills', 'AGENTS.md', 'MCP']
+        features: ['Skills', 'AGENTS.md', 'MCP'],
+        // Official website: https://docs.anthropic.com/en/docs/claude-code
+        featurePaths: ['.claude/commands', '.claude.json']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

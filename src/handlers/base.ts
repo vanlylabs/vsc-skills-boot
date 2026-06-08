@@ -42,6 +42,7 @@ export interface ToolConfig {
     displayName: string;
     root: string[];
     features: ToolFeature[];
+    featurePaths?: string[];
 }
 
 export abstract class BaseHandler implements InstructionHandler {

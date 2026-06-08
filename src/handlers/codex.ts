@@ -45,7 +45,9 @@ export class CodexHandler extends BaseHandler {
         id: 'codex',
         displayName: 'Codex',
         root: ['.agents', 'AGENTS.md', '.codex/config.toml'],
-        features: ['Skills', 'AGENTS.md', 'MCP']
+        features: ['Skills', 'AGENTS.md', 'MCP'],
+        // Official website: https://sourcegraph.com/docs/cody
+        featurePaths: ['.agents/agents', '.cody/rules']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

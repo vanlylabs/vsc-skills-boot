@@ -5,7 +5,9 @@ export class ClineHandler extends BaseHandler {
         id: 'cline',
         displayName: 'Cline',
         root: ['.clinerules'],
-        features: ['Skills', 'AGENTS.md']
+        features: ['Skills', 'AGENTS.md'],
+        // Official website: https://cline.bot/
+        featurePaths: ['.clinerules/rules', '.cline/memory']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

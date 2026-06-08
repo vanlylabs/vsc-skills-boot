@@ -31,7 +31,9 @@ export class GithubCopilotHandler extends BaseHandler {
         id: 'githubcopilot',
         displayName: 'GitHub Copilot',
         root: ['.github', 'AGENTS.md', '.vscode/mcp.json'],
-        features: ['Skills', 'AGENTS.md', 'MCP']
+        features: ['Skills', 'AGENTS.md', 'MCP'],
+        // Official website: https://docs.github.com/en/copilot
+        featurePaths: ['.github/copilot-instructions.md']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

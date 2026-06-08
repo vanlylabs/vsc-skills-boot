@@ -35,7 +35,9 @@ export class KiloHandler extends BaseHandler {
         id: 'kilo',
         displayName: 'Kilo',
         root: ['.kilocode', 'AGENTS.md', '.kilo/kilo.jsonc'],
-        features: ['Skills', 'AGENTS.md', 'MCP']
+        features: ['Skills', 'AGENTS.md', 'MCP'],
+        // Official website: https://docs.kilohq.com/
+        featurePaths: ['.kilocode/rules', '.kilocode/agents']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

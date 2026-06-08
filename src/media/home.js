@@ -32,6 +32,7 @@
     let currentInstructions = [];
     let formMode = 'create'; // 'create' | 'edit' | 'duplicate' | 'import'
     let editingInstructionId = null; // For edit mode
+    let agentLock = null; // { enabled: true, toolId: 'claudecode' } or null
 
     // 1. Initial Data Request
     vscode.postMessage({ type: 'requestData' });
@@ -83,14 +84,26 @@
 
         // Toggle visibility of tool/mapping fields
         if (mode === 'create') {
-            typeContainer.classList.remove('hidden');
+            if (agentLock && agentLock.enabled) {
+                // If agent lock is enabled, auto-select the locked tool
+                typeContainer.classList.add('hidden');
+                selectType.value = agentLock.toolId;
+                const tool = toolConfigs.find(t => t.id === agentLock.toolId);
+                if (tool && tool.features) {
+                    renderFeatures(tool.features);
+                    mappingContainer.classList.remove('hidden');
+                }
+            } else {
+                typeContainer.classList.remove('hidden');
+            }
             creationGuidance.classList.remove('hidden');
-            // mapping-container visibility is handled by selectType change or populateForm
         } else {
             typeContainer.classList.add('hidden');
             mappingContainer.classList.add('hidden');
             creationGuidance.classList.add('hidden');
         }
+
+        validateForm();
     }
 
     function populateForm(data) {
@@ -152,9 +165,14 @@
         createErrorBanner.style.display = 'none';
 
         // Validate Tool ID only for create/import modes
+        // In dedicated agent mode, tool is auto-selected so always valid
         let isToolValid = true;
         if (formMode === 'create' || formMode === 'import') {
-            isToolValid = !!toolId;
+            if (agentLock && agentLock.enabled) {
+                isToolValid = true; // Tool is auto-set from lock
+            } else {
+                isToolValid = !!toolId;
+            }
         }
 
         btnSave.disabled = !name || !isNameValid || !isToolValid;
@@ -228,6 +246,15 @@
         // We stay on the page until we get an 'update' (success) or 'createError' (failure).
     });
 
+    document.getElementById('agent-lock-select').addEventListener('change', (e) => {
+        const toolId = e.target.value;
+        if (toolId) {
+            vscode.postMessage({ type: 'setAgentLock', toolId });
+        } else {
+            vscode.postMessage({ type: 'setAgentLock', toolId: null });
+        }
+    });
+
     // 4. Event Delegation for Action Buttons (set up once)
     console.log('[SkillsBoot] Setting up action button event delegation on:', instructionList);
 
@@ -296,6 +323,13 @@
             case 'update':
                 toolConfigs = message.availableTools || [];
                 currentInstructions = message.instructions || [];
+                agentLock = message.agentLock || null;
+
+                if (agentLock && agentLock.enabled) {
+                    document.getElementById('agent-lock-select').value = agentLock.toolId;
+                } else {
+                    document.getElementById('agent-lock-select').value = '';
+                }
 
                 updateToolDropdown(toolConfigs);
                 renderInstructions(
@@ -335,12 +369,25 @@
     // 5. Rendering & Component Logic
     function updateToolDropdown(tools) {
         selectType.innerHTML = '<option value="">Select a tool...</option>';
+        const lockSelect = document.getElementById('agent-lock-select');
+        lockSelect.innerHTML = '<option value="">Off</option>';
+
         tools.forEach(tool => {
             const opt = document.createElement('option');
             opt.value = tool.id;
             opt.textContent = tool.displayName;
             selectType.appendChild(opt);
+
+            const optLock = document.createElement('option');
+            optLock.value = tool.id;
+            optLock.textContent = tool.displayName;
+            lockSelect.appendChild(optLock);
         });
+
+        // Restore lock selection after repopulating
+        if (agentLock && agentLock.enabled) {
+            lockSelect.value = agentLock.toolId;
+        }
     }
 
     function renderFeatures(features) {
@@ -353,6 +400,7 @@
             multiSelectMapping.appendChild(opt);
         });
     }
+
 
     /**
      * Renders the list of instructions cards.
@@ -398,9 +446,15 @@
                 </div>
                 <div class="card-desc"></div>
                 <div class="card-actions">
-                    <select id="${toolSelectorId}" class="tool-selector">
-                        <option value="unlinked" ${!isActive ? 'selected' : ''}>None</option>
-                    </select>
+                    ${agentLock?.enabled ? `
+                        <vscode-button appearance="${(isActive && selectedState.toolId === agentLock.toolId) ? 'primary' : 'secondary'}" class="btn-apply-toggle ${(isActive && selectedState.toolId === agentLock.toolId) ? 'applied' : ''}" data-instruction-id="${inst.id}">
+                            ${(isActive && selectedState.toolId === agentLock.toolId) ? 'Remove' : 'Apply'}
+                        </vscode-button>
+                    ` : `
+                        <select id="${toolSelectorId}" class="tool-selector">
+                            <option value="unlinked" ${!isActive ? 'selected' : ''}>None</option>
+                        </select>
+                    `}
                     <button class="icon-btn btn-edit" data-instruction-id="${inst.id}" data-instruction-name="${name}" data-instruction-desc="${desc}" title="Edit this instruction">
                         ✎
                     </button>
@@ -431,20 +485,32 @@
             const descEl = card.querySelector('.card-desc');
             descEl.addEventListener('click', toggleExpand);
 
-            // Populate the dropdown
-            const select = card.querySelector('.tool-selector');
-            availableTools.forEach(tool => {
-                const opt = document.createElement('option');
-                opt.value = tool.id;
-                opt.textContent = tool.displayName;
-                if (linkedToolId === tool.id) opt.selected = true;
-                select.appendChild(opt);
-            });
+            if (agentLock?.enabled) {
+                const applyBtn = card.querySelector('.btn-apply-toggle');
+                applyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (applyBtn.classList.contains('applied')) {
+                        vscode.postMessage({ type: 'unlink', id: inst.id });
+                    } else {
+                        vscode.postMessage({ type: 'applyLocked', id: inst.id });
+                    }
+                });
+            } else {
+                // Populate the dropdown
+                const select = card.querySelector('.tool-selector');
+                availableTools.forEach(tool => {
+                    const opt = document.createElement('option');
+                    opt.value = tool.id;
+                    opt.textContent = tool.displayName;
+                    if (linkedToolId === tool.id) opt.selected = true;
+                    select.appendChild(opt);
+                });
 
-            select.addEventListener('change', (e) => {
-                const val = e.target.value;
-                handleToolChange(inst.id, val);
-            });
+                select.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    handleToolChange(inst.id, val);
+                });
+            }
 
             fragment.appendChild(card);
         });

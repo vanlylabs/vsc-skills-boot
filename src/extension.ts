@@ -81,6 +81,13 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
                     case 'duplicate': await this._handleDuplicate(data.sourceId, data.name, data.description); break;
                     case 'detectInstructions': await this._handleDetectInstructions(); break;
                     case 'import': await this._handleImport(data.name, data.description, data.toolId, data.features); break;
+                    case 'setAgentLock': await this._handleSetAgentLock(data.toolId); break;
+                    case 'applyLocked':
+                        const lockState = stateService.getAgentLock();
+                        if (lockState?.enabled) {
+                            await this._handleApply(data.id, lockState.toolId);
+                        }
+                        break;
                 }
             } catch (err: any) {
                 manager.log.error(`[SkillsBoot] Error handling ${data.type}: ${err.message}`);
@@ -95,7 +102,10 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
             return;
         }
 
-        const handler = handlers[data.toolId];
+        const agentLock = stateService.getAgentLock();
+        const finalToolId = agentLock?.enabled ? agentLock.toolId : data.toolId;
+
+        const handler = handlers[finalToolId];
         if (!handler) throw new Error("Invalid tool selected.");
 
         const targetDir = storageService.getTemplatePath(data.name);
@@ -106,7 +116,7 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         await handler.scaffold(targetDir, data.features, embeddedTemplateRoot);
 
         await this.refresh();
-        await this._handleApply(data.name, data.toolId);
+        await this._handleApply(data.name, finalToolId);
         vscode.window.showInformationMessage(`Instruction "${data.name}" initialized and applied.`);
     }
 
@@ -117,7 +127,8 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         const projectRoot = this._getProjectRoot();
         if (!projectRoot) return;
 
-        linkManager.unlinkTool(projectRoot, activeState.id, activeState.toolId);
+        const agentLockEnabled = !!stateService.getAgentLock()?.enabled;
+        linkManager.unlinkTool(projectRoot, activeState.id, activeState.toolId, agentLockEnabled);
 
         await stateService.setActiveState(undefined, undefined);
         this._onInstructionUnlinked();
@@ -221,9 +232,24 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         vscode.window.showInformationMessage(`Instruction "${name}" imported.`);
     }
 
+    private async _handleSetAgentLock(toolId: string | null) {
+        // Unlink any currently active instruction when toggling mode
+        await this._handleUnlink(true);
+
+        if (toolId) {
+            await stateService.setAgentLock({ enabled: true, toolId });
+        } else {
+            await stateService.setAgentLock(undefined);
+        }
+        await this.refresh();
+    }
+
     private async _handleApply(id: string, toolId: string) {
         const projectRoot = this._getProjectRoot();
         if (!projectRoot) return;
+
+        const agentLock = stateService.getAgentLock();
+        const agentLockEnabled = !!agentLock?.enabled;
 
         const templateDir = storageService.getTemplatePath(id);
         const variantDir = storageService.getVariantPath(id, toolId);
@@ -233,7 +259,7 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
 
         await handlers[toolId].syncSourceToVariant(templateDir, variantDir);
 
-        const conflicts = await linkManager.applyLinks(projectRoot, id, toolId);
+        const conflicts = await linkManager.applyLinks(projectRoot, id, toolId, agentLockEnabled);
         if (conflicts.length > 0) {
             const msg = `SkillsBoot will replace these paths with links:\n\n${conflicts.join('\n')}\n\nProceed?`;
             const answer = await vscode.window.showWarningMessage(msg, { modal: true }, 'Proceed');
@@ -241,7 +267,7 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         }
 
         await this._handleUnlink(true);
-        linkManager.executeLinks(projectRoot, id, toolId, variantDir);
+        linkManager.executeLinks(projectRoot, id, toolId, variantDir, agentLockEnabled);
 
         await stateService.setActiveState(id, toolId);
         this._onInstructionApplied(id);
@@ -252,11 +278,12 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         if (!this._view) return;
 
         let selected = stateService.getActiveState();
+        const agentLock = stateService.getAgentLock();
         const projectRoot = this._getProjectRoot();
 
         // Validation: If state says applied but links are missing, treat as unapplied in UI
         if (selected && projectRoot) {
-            if (!linkManager.verifyLinks(projectRoot, selected.id, selected.toolId)) {
+            if (!linkManager.verifyLinks(projectRoot, selected.id, selected.toolId, !!agentLock?.enabled)) {
                 selected = undefined;
             }
         }
@@ -265,7 +292,8 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
             type: 'update',
             instructions: storageService.getAllInstructions(),
             availableTools: Object.values(handlers).map(h => h.getConfig()),
-            selected: selected
+            selected: selected,
+            agentLock: agentLock
         });
     }
 

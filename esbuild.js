@@ -29,6 +29,7 @@ async function main() {
 			'src/extension.ts'
 		],
 		bundle: true,
+		mainFields: ['module', 'main'],
 		format: 'cjs',
 		minify: production,
 		sourcemap: !production,

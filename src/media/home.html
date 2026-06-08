@@ -16,17 +16,25 @@
 <body>
     <main>
         <div id="home-page">
-            <section class="card-header">
-                <h3>Available Instructions</h3>
-                <div style="display: flex; gap: 8px;">
-                    <vscode-button id="go-to-create" appearance="primary">
-                        <span slot="start" class="codicon codicon-add"></span>
-                        New
-                    </vscode-button>
-                    <vscode-button id="go-to-import" appearance="secondary">
-                        <span slot="start" class="codicon codicon-cloud-download"></span>
-                        Import
-                    </vscode-button>
+            <section class="top-section">
+                <div class="card-header">
+                    <h3>Available Instructions</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <vscode-button id="go-to-create" appearance="primary">
+                            <span slot="start" class="codicon codicon-add"></span>
+                            New
+                        </vscode-button>
+                        <vscode-button id="go-to-import" appearance="secondary">
+                            <span slot="start" class="codicon codicon-cloud-download"></span>
+                            Import
+                        </vscode-button>
+                    </div>
+                </div>
+                <div class="agent-lock-container">
+                    <label for="agent-lock-select">Dedicated Agent:</label>
+                    <select id="agent-lock-select" class="agent-lock-select">
+                        <option value="">None (Switch between agents)</option>
+                    </select>
                 </div>
             </section>
 

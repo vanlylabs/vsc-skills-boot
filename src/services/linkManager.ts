@@ -3,18 +3,33 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { manager } from '../extensionManager';
-import { handlers } from '../handlers';
+import { handlers, ToolConfig } from '../handlers';
+import { storageService } from './storageService';
 
 export class LinkManager {
-    public async applyLinks(projectRoot: string, instructionId: string, toolId: string): Promise<string[]> {
+    private getLinkPaths(config: ToolConfig, agentLockEnabled: boolean): string[] {
+        const paths = [...config.root];
+        if (agentLockEnabled && config.featurePaths) {
+            for (const fp of config.featurePaths) {
+                const isSubPath = config.root.some(r => fp.startsWith(r + '/') || fp.startsWith(r + '\\'));
+                if (!isSubPath) {
+                    paths.push(fp);
+                }
+            }
+        }
+        return paths;
+    }
+
+    public async applyLinks(projectRoot: string, instructionId: string, toolId: string, agentLockEnabled: boolean = false): Promise<string[]> {
         const handler = handlers[toolId];
         if (!handler) throw new Error(`Handler for ${toolId} not found`);
 
         const config = handler.getConfig();
+        const paths = this.getLinkPaths(config, agentLockEnabled);
         const expandedRoots: { raw: string, expanded: string }[] = [];
         const conflicts: string[] = [];
 
-        for (const rootPath of config.root) {
+        for (const rootPath of paths) {
             const expanded = rootPath.replace('${basename}', instructionId);
             expandedRoots.push({ raw: rootPath, expanded });
 
@@ -30,11 +45,12 @@ export class LinkManager {
         return conflicts;
     }
 
-    public executeLinks(projectRoot: string, instructionId: string, toolId: string, variantDir: string) {
+    public executeLinks(projectRoot: string, instructionId: string, toolId: string, variantDir: string, agentLockEnabled: boolean = false) {
         const handler = handlers[toolId];
         const config = handler.getConfig();
+        const paths = this.getLinkPaths(config, agentLockEnabled);
 
-        for (const rootPath of config.root) {
+        for (const rootPath of paths) {
             const expanded = rootPath.replace('${basename}', instructionId);
             const targetPath = path.join(projectRoot, expanded);
             const actualSourcePath = path.join(variantDir, expanded);
@@ -54,30 +70,39 @@ export class LinkManager {
         }
     }
 
-    public unlinkTool(projectRoot: string, instructionId: string, toolId: string) {
+    public unlinkTool(projectRoot: string, instructionId: string, toolId: string, agentLockEnabled: boolean = false) {
         const handler = handlers[toolId];
         if (!handler) return;
 
         const config = handler.getConfig();
-        for (const rootPath of config.root) {
+        const paths = this.getLinkPaths(config, agentLockEnabled);
+        for (const rootPath of paths) {
             const expanded = rootPath.replace('${basename}', instructionId);
             const fullPath = path.join(projectRoot, expanded);
             this.removePath(fullPath, false);
         }
     }
 
-    public verifyLinks(projectRoot: string, instructionId: string, toolId: string): boolean {
+    public verifyLinks(projectRoot: string, instructionId: string, toolId: string, agentLockEnabled: boolean = false): boolean {
         const handler = handlers[toolId];
         if (!handler) return false;
 
         const config = handler.getConfig();
-        for (const rootPath of config.root) {
+        const paths = this.getLinkPaths(config, agentLockEnabled);
+        const variantDir = storageService.getVariantPath(instructionId, toolId);
+
+        for (const rootPath of paths) {
             const expanded = rootPath.replace('${basename}', instructionId);
             const fullPath = path.join(projectRoot, expanded);
+            const sourcePath = path.join(variantDir, expanded);
             try {
                 if (!fs.lstatSync(fullPath).isSymbolicLink()) return false;
             } catch (e) {
-                return false;
+                // Path doesn't exist in project — only fail if the source exists
+                // (meaning a symlink should have been created but wasn't)
+                if (fs.existsSync(sourcePath)) return false;
+                // Source also doesn't exist, so no symlink was expected — OK
+                continue;
             }
         }
         return true;

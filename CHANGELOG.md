@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0] - 2026-05-31
+### Added
+- **Agent Lock Mode**: Lock SkillsBoot to a specific coding agent. In this mode, tool selectors are hidden and replaced with a global Apply/Unapply toggle.
+- **Extended Agent Features**: Added support for agent-specific advanced features that reside exclusively in variant stores (like `.claude/commands`, `.cursor/rules`, etc.). These features sync to the project when locked, without disrupting cross-agent portability.
+
 ## [1.1.0] - 2026-05-10
 ### Added
 - **MCP Server Sync**: Standardize Model Context Protocol (MCP) server configurations across agents.

@@ -1,10 +1,10 @@
 :root {
     --container-pading: 10px;
-    /* Reduced from 20px */
     --input-padding-vertical: 6px;
     --input-padding-horizontal: 11px;
     --input-margin-vertical: 3px;
     --input-margin-horizontal: 3px;
+    --control-height: 22px;
 }
 
 body {
@@ -175,8 +175,8 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 28px;
-    height: 24px;
+    min-width: 26px;
+    height: var(--control-height);
 }
 
 .icon-btn:hover {
@@ -192,12 +192,13 @@ select {
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
     border: 1px solid var(--vscode-dropdown-border);
-    padding: 6px 8px;
+    padding: 2px 6px;
     border-radius: 2px;
     outline: none;
     font-family: inherit;
     font-size: inherit;
     cursor: pointer;
+    height: var(--control-height);
 }
 
 select:focus {
@@ -286,4 +287,59 @@ label {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Top Section */
+.top-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.agent-lock-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.agent-lock-container label {
+    margin-bottom: 0;
+    font-size: 0.85em;
+    opacity: 0.8;
+    white-space: nowrap;
+}
+
+.agent-lock-select {
+    width: 150px;
+}
+
+/* Compact vscode-button sizing */
+vscode-button {
+    --vscode-button-padding-vertical: 1px;
+    --vscode-button-padding-horizontal: 10px;
+}
+
+vscode-button::part(control) {
+    min-height: var(--control-height);
+    height: var(--control-height);
+    padding: 1px 10px;
+    font-size: 12px;
+}
+
+vscode-button.btn-apply-toggle {
+    min-width: 80px;
+}
+
+/* Compact vscode-button sizing */
+vscode-button {
+    --vscode-button-padding-vertical: 1px;
+    --vscode-button-padding-horizontal: 10px;
+}
+
+vscode-button::part(control) {
+    min-height: 24px;
+    padding: 1px 10px;
+    font-size: 12px;
 }

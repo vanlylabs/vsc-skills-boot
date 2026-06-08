@@ -28,7 +28,9 @@ export class CursorHandler extends BaseHandler {
         id: 'cursor',
         displayName: 'Cursor',
         root: ['.cursor', 'AGENTS.md', '.cursor/mcp.json'],
-        features: ['Skills', 'AGENTS.md', 'MCP']
+        features: ['Skills', 'AGENTS.md', 'MCP'],
+        // Official website: https://docs.cursor.com/
+        featurePaths: ['.cursor/rules']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {
