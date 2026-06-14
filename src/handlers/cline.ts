@@ -4,10 +4,13 @@ export class ClineHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'cline',
         displayName: 'Cline',
-        root: ['.clinerules'],
+        root: '.clinerules/',
+        switchPaths: ['.clinerules/', 'AGENTS.md'],
         features: ['Skills', 'AGENTS.md'],
-        // Official website: https://cline.bot/
-        featurePaths: ['.clinerules/rules', '.cline/memory']
+        // Official website: https://docs.cline.bot/cline-overview
+        // rules (	.clinerules/), skills(.cline/skills/, .clinerules/skills/)
+        featurePaths: ['.clinerules/', 'AGENTS.md', '.cline/']
+        // Not supported: plugins(?), mcp(not project level), hooks(?)
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

@@ -6,14 +6,20 @@
     // Elements - Pages
     const homePage = document.getElementById('home-page');
     const createPage = document.getElementById('create-page');
+    const settingsPage = document.getElementById('settings-page');
+    const welcomePage = document.getElementById('welcome-page');
 
     // Elements - Home
     const instructionList = document.getElementById('instruction-list');
+    const agentLockSelect = document.getElementById('agent-lock-select');
+    const autoDetectBanner = document.getElementById('dedicated-mode-banner');
     const btnGoToCreate = document.getElementById('go-to-create');
     const btnGoToImport = document.getElementById('go-to-import');
+    const btnGoToSettings = document.getElementById('go-to-settings');
 
     // Elements - Create Form
     const btnBackToHome = document.getElementById('back-to-home');
+    const btnBackToHomeSettings = document.getElementById('back-to-home-settings');
     const btnSave = document.getElementById('save-instruction');
     const inputName = document.getElementById('inst-name');
     const inputDesc = document.getElementById('inst-desc');
@@ -26,6 +32,10 @@
     const formTitle = document.getElementById('form-title');
     const saveButtonText = document.getElementById('save-button-text');
     const creationGuidance = document.getElementById('creation-guidance');
+
+    // Welcome Page Elements
+    const welcomeAgentSelect = document.getElementById('welcome-agent-select');
+    const btnWelcomeGo = document.getElementById('btn-welcome-go');
 
     // Global state
     let toolConfigs = [];
@@ -73,30 +83,43 @@
             populateForm(data);
         }
 
-        // For import mode, detect instructions
-        if (mode === 'import') {
-            vscode.postMessage({ type: 'detectInstructions' });
-        }
+        // For import mode, we do NOT auto-detect instructions anymore
+        // It is up to the user to choose the agent type
 
         // Show form page
         homePage.classList.add('hidden');
         createPage.classList.remove('hidden');
 
-        // Toggle visibility of tool/mapping fields
+        typeContainer.classList.remove('hidden'); // Always visible now
+        
         if (mode === 'create') {
             if (agentLock && agentLock.enabled) {
-                // If agent lock is enabled, auto-select the locked tool
-                typeContainer.classList.add('hidden');
                 selectType.value = agentLock.toolId;
+                selectType.disabled = true;
                 const tool = toolConfigs.find(t => t.id === agentLock.toolId);
                 if (tool && tool.features) {
                     renderFeatures(tool.features);
                     mappingContainer.classList.remove('hidden');
                 }
             } else {
-                typeContainer.classList.remove('hidden');
+                selectType.disabled = false;
             }
             creationGuidance.classList.remove('hidden');
+        } else if (mode === 'import') {
+            if (agentLock && agentLock.enabled) {
+                selectType.value = agentLock.toolId;
+                selectType.disabled = true;
+                const tool = toolConfigs.find(t => t.id === agentLock.toolId);
+                if (tool && tool.features) {
+                    renderFeatures(tool.features);
+                    mappingContainer.classList.remove('hidden');
+                }
+            } else {
+                selectType.disabled = false;
+                selectType.value = '';
+            }
+            mappingContainer.classList.add('hidden'); // No components to standardize in import mode
+            creationGuidance.classList.add('hidden');
         } else {
             typeContainer.classList.add('hidden');
             mappingContainer.classList.add('hidden');
@@ -120,10 +143,27 @@
         validateForm();
     }
 
+    // Navigation functions
     function showHomePage() {
-        createPage.classList.add('hidden');
         homePage.classList.remove('hidden');
-        resetCreateForm();
+        createPage.classList.add('hidden');
+        settingsPage.classList.add('hidden');
+        welcomePage.classList.add('hidden');
+        formMode = null;
+        editingInstructionId = null;
+    }
+
+    function openSettings() {
+        homePage.classList.add('hidden');
+        createPage.classList.add('hidden');
+        settingsPage.classList.remove('hidden');
+    }
+
+    function showWelcomePage() {
+        homePage.classList.add('hidden');
+        createPage.classList.add('hidden');
+        settingsPage.classList.add('hidden');
+        welcomePage.classList.remove('hidden');
     }
 
     function resetCreateForm(mode = 'create', id = null) {
@@ -144,11 +184,18 @@
         createErrorBanner.style.display = 'block';
     }
 
+    // Top button bindings
     btnGoToCreate.addEventListener('click', () => openForm('create'));
     btnGoToImport.addEventListener('click', () => openForm('import'));
+    btnGoToSettings.addEventListener('click', () => openSettings());
 
     btnBackToHome.addEventListener('click', (e) => {
-        e.preventDefault(); // Handle if it's an anchor tag
+        e.preventDefault();
+        showHomePage();
+    });
+
+    btnBackToHomeSettings.addEventListener('click', (e) => {
+        e.preventDefault();
         showHomePage();
     });
 
@@ -171,7 +218,7 @@
             if (agentLock && agentLock.enabled) {
                 isToolValid = true; // Tool is auto-set from lock
             } else {
-                isToolValid = !!toolId;
+                isToolValid = !!toolId; // Requires selection if not locked
             }
         }
 
@@ -246,8 +293,18 @@
         // We stay on the page until we get an 'update' (success) or 'createError' (failure).
     });
 
-    document.getElementById('agent-lock-select').addEventListener('change', (e) => {
+    agentLockSelect.addEventListener('change', (e) => {
         const toolId = e.target.value;
+        if (toolId) {
+            vscode.postMessage({ type: 'setAgentLock', toolId });
+        } else {
+            vscode.postMessage({ type: 'setAgentLock', toolId: null });
+        }
+    });
+
+    btnWelcomeGo.addEventListener('click', () => {
+        const toolId = welcomeAgentSelect.value;
+        vscode.postMessage({ type: 'welcomeDone' });
         if (toolId) {
             vscode.postMessage({ type: 'setAgentLock', toolId });
         } else {
@@ -325,10 +382,22 @@
                 currentInstructions = message.instructions || [];
                 agentLock = message.agentLock || null;
 
+                // Update the Top Banner
                 if (agentLock && agentLock.enabled) {
-                    document.getElementById('agent-lock-select').value = agentLock.toolId;
+                    const tool = toolConfigs.find(t => t.id === agentLock.toolId);
+                    const toolName = tool ? tool.displayName : agentLock.toolId;
+                    autoDetectBanner.innerHTML = `<span class="codicon codicon-lock" style="font-size: 11px; margin-right: 4px; vertical-align: middle;"></span><span style="vertical-align: middle;">Dedicated Agent: ${toolName}</span>`;
+                    autoDetectBanner.style.display = 'block';
+                    autoDetectBanner.classList.remove('hidden');
                 } else {
-                    document.getElementById('agent-lock-select').value = '';
+                    autoDetectBanner.style.display = 'none';
+                    autoDetectBanner.classList.add('hidden');
+                }
+
+                if (agentLock && agentLock.enabled) {
+                    agentLockSelect.value = agentLock.toolId;
+                } else {
+                    agentLockSelect.value = '';
                 }
 
                 updateToolDropdown(toolConfigs);
@@ -338,10 +407,13 @@
                     message.availableTools
                 );
 
-                // If we were on the create page, go back home now that it's finished
-                if (!createPage.classList.contains('hidden')) {
+                // If we were on the create or welcome page, go back home now that it's finished
+                if (!createPage.classList.contains('hidden') || !welcomePage.classList.contains('hidden')) {
                     showHomePage();
                 }
+                break;
+            case 'showWelcome':
+                showWelcomePage();
                 break;
             case 'detected':
                 console.log('[SkillsBoot] Detected:', message);
@@ -382,6 +454,11 @@
             optLock.value = tool.id;
             optLock.textContent = tool.displayName;
             lockSelect.appendChild(optLock);
+            
+            const optWelcome = document.createElement('option');
+            optWelcome.value = tool.id;
+            optWelcome.textContent = tool.displayName;
+            welcomeAgentSelect.appendChild(optWelcome);
         });
 
         // Restore lock selection after repopulating
@@ -448,7 +525,7 @@
                 <div class="card-actions">
                     ${agentLock?.enabled ? `
                         <vscode-button appearance="${(isActive && selectedState.toolId === agentLock.toolId) ? 'primary' : 'secondary'}" class="btn-apply-toggle ${(isActive && selectedState.toolId === agentLock.toolId) ? 'applied' : ''}" data-instruction-id="${inst.id}">
-                            ${(isActive && selectedState.toolId === agentLock.toolId) ? 'Remove' : 'Apply'}
+                            ${(isActive && selectedState.toolId === agentLock.toolId) ? 'Unapply' : 'Apply'}
                         </vscode-button>
                     ` : `
                         <select id="${toolSelectorId}" class="tool-selector">

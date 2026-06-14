@@ -28,15 +28,14 @@
                             <span slot="start" class="codicon codicon-cloud-download"></span>
                             Import
                         </vscode-button>
+                        <vscode-button id="go-to-settings" appearance="icon" title="Settings" aria-label="Settings">
+                            <span class="codicon codicon-settings-gear"></span>
+                        </vscode-button>
                     </div>
                 </div>
-                <div class="agent-lock-container">
-                    <label for="agent-lock-select">Dedicated Agent:</label>
-                    <select id="agent-lock-select" class="agent-lock-select">
-                        <option value="">None (Switch between agents)</option>
-                    </select>
-                </div>
             </section>
+            
+            <div id="dedicated-mode-banner" class="hidden" style="margin-bottom: 12px; padding: 6px 10px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); border-radius: 4px; font-size: 10px; font-weight: bold; width: fit-content; display: none;"></div>
 
             <div id="instruction-list">
                 <div class="empty-state" style="border:none; padding: 40px 0;">
@@ -121,6 +120,86 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="settings-page" class="hidden">
+            <section>
+                <a href="#" id="back-to-home-settings" class="nav-link"
+                    style="color: var(--vscode-textLink-foreground); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 16px;">
+                    <span class="codicon codicon-arrow-left"></span>
+                    Back to Overview
+                </a>
+
+                <h2 style="margin: 0 0 20px 0; font-weight: 600;">Settings</h2>
+
+                <div class="instruction-card" style="margin-top: 10px; border: 1px solid var(--vscode-widget-border); padding: 15px;">
+                    <div class="agent-lock-container" style="justify-content: flex-start; margin-bottom: 0;">
+                        <label for="agent-lock-select" style="margin-right: 10px;">Dedicated Agent:</label>
+                        <select id="agent-lock-select" class="agent-lock-select">
+                            <option value="">Off</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top: 12px; font-size: 11px; opacity: 0.8; line-height: 1.4;">
+                        Select a Dedicated Agent to lock your workspace to a specific tool format perfectly, enabling agent-specific extended features and isolating components.
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="welcome-page" class="hidden">
+            <section style="display: flex; flex-direction: column; height: 100vh; max-width: 600px; margin: 0 auto; text-align: left; padding-top: 40px; gap: 20px;">
+                <h1 style="font-weight: 600; font-size: 20px; text-transform: uppercase;">Welcome to SkillsBoot</h1>
+                <p style="font-size: 12px; opacity: 0.9; line-height: 1.5;">Configure your coding agent to get started.</p>
+
+                <div class="instruction-card" style="border: 1px solid var(--vscode-widget-border); padding: 15px;">
+                    <div class="agent-lock-container" style="justify-content: flex-start; margin-bottom: 12px;">
+                        <label for="welcome-agent-select" style="margin-right: 10px; font-size: 12px;">Dedicated Agent:</label>
+                        <select id="welcome-agent-select" class="agent-lock-select">
+                            <option value="">Off (Flexible Mode)</option>
+                        </select>
+                    </div>
+
+                    <div style="font-size: 11px; opacity: 0.8; line-height: 1.6;">
+                        <strong style="color: var(--vscode-textLink-foreground);">Dedicated Mode:</strong> Locks your workspace to a single agent. This enables full compatibility and agent-specific advanced features.<br/><br/>
+                        <strong style="color: var(--vscode-textLink-foreground);">Flexible Mode ("Off"):</strong> Switch between agents at will. Supports only standard features that can be cross-compiled.
+                    </div>
+                    
+                    <div style="margin-top: 16px; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: left;">
+                            <thead style="background: var(--vscode-editor-inactiveSelectionBackground);">
+                                <tr>
+                                    <th style="padding: 6px; border: 1px solid var(--vscode-widget-border);">Flexible Agent</th>
+                                    <th style="padding: 6px; border: 1px solid var(--vscode-widget-border);">AGENTS.md</th>
+                                    <th style="padding: 6px; border: 1px solid var(--vscode-widget-border);">Skills</th>
+                                    <th style="padding: 6px; border: 1px solid var(--vscode-widget-border);">MCP Config</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><strong>GitHub Copilot</strong></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>AGENTS.md</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.github/skills/</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.vscode/mcp.json</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><strong>Claude Code</strong></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>CLAUDE.md</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.claude/skills/</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.mcp.json</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><strong>Cursor</strong></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>AGENTS.md</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.cursor/skills/</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.cursor/mcp.json</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><strong>Kilo</strong></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>AGENTS.md</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.kilocode/skills/</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.kilo/kilo.jsonc</code></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><strong>Codex</strong></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>AGENTS.md</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.agents/skills/</code></td><td style="padding: 6px; border: 1px solid var(--vscode-widget-border);"><code>.codex/config.toml</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                    <vscode-button id="btn-welcome-go" appearance="primary" style="padding: 4px 20px; font-size: 11px;">Save & Get Started</vscode-button>
                 </div>
             </section>
         </div>

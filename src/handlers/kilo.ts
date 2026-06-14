@@ -34,10 +34,12 @@ export class KiloHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'kilo',
         displayName: 'Kilo',
-        root: ['.kilocode', 'AGENTS.md', '.kilo/kilo.jsonc'],
+        root: '.kilocode/',
+        switchPaths: ['.kilocode/', 'AGENTS.md', '.kilo/kilo.jsonc'],
         features: ['Skills', 'AGENTS.md', 'MCP'],
-        // Official website: https://docs.kilohq.com/
-        featurePaths: ['.kilocode/rules', '.kilocode/agents']
+        // Official website: https://kilo.ai/docs/customize, https://kilo.ai/docs/automate/mcp/using-in-kilo-code
+        // rules(.kilocode/rules, .kilo/rules), skills(.kilo/skills/), subagents(.kilo/agents/), command/workflow(/.kilo/commands/, kilocode/workflows/), mcp(.kilo/kilo.jsonc)
+        featurePaths: ['.kilocode/', 'AGENTS.md', '.kilo/']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

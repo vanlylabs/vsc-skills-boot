@@ -26,4 +26,5 @@ export type WebviewMessage =
     | { type: 'detectionFailed' }
     | { type: 'createError', message: string }
     | { type: 'setAgentLock', toolId: string | null }
-    | { type: 'applyLocked', id: string };
+    | { type: 'applyLocked', id: string }
+    | { type: 'welcomeDone' };

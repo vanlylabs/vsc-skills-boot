@@ -26,11 +26,19 @@ export class StateService {
     }
 
     public getAgentLock(): { enabled: boolean; toolId: string } | undefined {
-        return this._context?.workspaceState.get<{ enabled: boolean; toolId: string }>('skillsboot.agentLock');
+        return this._context?.globalState.get<{ enabled: boolean; toolId: string }>('skillsboot.agentLock');
     }
 
     public async setAgentLock(state: { enabled: boolean; toolId: string } | undefined) {
-        await this._context?.workspaceState.update('skillsboot.agentLock', state);
+        await this._context?.globalState.update('skillsboot.agentLock', state);
+    }
+
+    public getFirstRunDone(): boolean {
+        return this._context?.globalState.get<boolean>('skillsboot.firstRunDone') || false;
+    }
+
+    public async setFirstRunDone(done: boolean) {
+        await this._context?.globalState.update('skillsboot.firstRunDone', done);
     }
 }
 

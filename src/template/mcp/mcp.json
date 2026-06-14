@@ -2,18 +2,20 @@
     "mcpServers": {
         "sample-local-server": {
             "command": "node",
-            "args": ["/path/to/server.js"],
+            "args": [
+                "/path/to/server.js"
+            ],
             "env": {
                 "API_KEY": "your_key_here"
             },
-            "enabled": true
+            "enabled": false
         },
         "sample-remote-server": {
             "url": "https://api.example.com/mcp",
             "headers": {
                 "Authorization": "Bearer your_token"
             },
-            "enabled": true
+            "enabled": false
         }
     }
 }

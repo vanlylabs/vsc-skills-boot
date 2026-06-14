@@ -4,10 +4,12 @@ export class WindsurfHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'windsurf',
         displayName: 'Windsurf',
-        root: ['.windsurf'],
+        root: '.windsurf/',
+        switchPaths: ['.windsurf/'],
         features: ['Skills', 'AGENTS.md'],
-        // Official website: https://docs.codeium.com/windsurf
-        featurePaths: ['.windsurfrules']
+        // Official website: https://docs.devin.ai/product-guides/
+        // rules(.windsurfrules), skills(.windsurf/skills/, .agents/skills), rules(.devin/rules)
+        featurePaths: ['.windsurfrules', '.windsurf/', '.agents/', '.devin/']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

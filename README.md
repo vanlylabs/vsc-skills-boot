@@ -14,8 +14,12 @@ Stop repeating yourself. Keep your custom "Senior Architect" persona, project gu
 - **AGENTS.md**
 - **MCP Configurations**
 
-### 2. Seamless Agent Switching 🔄
-Moving from Claude Code to GitHub Copilot? Just flip a toggle. **Switch Mode** ensures your core features (Skills, AGENTS.md, MCP) are instantly re-mapped, transformed, and injected into the appropriate format for your newly selected agent. Refer below table for features supported in switch mode.
+### 2. Dedicated Agent Mode (Recommended) 🔒
+For power users who heavily utilize extended, agent-specific capabilities (e.g., Kilo's `.kilocode/agents` or Cline's `.cline/memory`), **Dedicated Agent Mode** is the primary way to use SkillsBoot. It locks the workspace to a single agent. This unlocks full compatibility with your agent's unique capabilities, safely isolating configurations to prevent conflicts while perfectly adhering to the agent's expected file structure.
+
+### 3. Flexible Mode (Switching Agents) 🔄
+Need to move from Claude Code to GitHub Copilot? If you disable the Dedicated Agent lock, you enter **Flexible Mode**. This mode allows you to instantly switch the instruction context between different AI agents. However, for compatibility across platforms, Flexible Mode **only** supports the core standard features listed below:
+
 | Agent | AGENTS.md | Skills | MCP Config |
 | :--- | :--- | :--- | :--- |
 | **GitHub Copilot** | `AGENTS.md` | `.github/skills/` | `.vscode/mcp.json` |
@@ -25,9 +29,6 @@ Moving from Claude Code to GitHub Copilot? Just flip a toggle. **Switch Mode** e
 | **Codex** | `AGENTS.md` | `.agents/skills/` | `.codex/config.toml` |
 | **Windsurf** | `AGENTS.md` | `.windsurf/skills/` | _(Not supported)_ |
 | **Cline** | `AGENTS.md` | `.clinerules/skills/` | _(Not supported)_ |
-
-### 3. Dedicated Agent Mode 🔒
-For power users who heavily utilize extended, agent-specific capabilities (e.g., Kilo's `.kilocode/agents` or Cline's `.cline/memory`), **Dedicated Agent Mode** locks the workspace to a single agent. This unlocks support for your agent's unique features, isolating them safely to prevent conflicts when switching.
 
 ### 4. Clear & Easy Instruction Management 📂
 With the SkillsBoot Manager UI, managing dozens of custom instructions is effortless. It takes one click to Apply, Remove, Edit, or Duplicate instructions across your entire portfolio.
@@ -49,14 +50,13 @@ With the SkillsBoot Manager UI, managing dozens of custom instructions is effort
 ### 1. Access the Manager
 Find the **Rocket Icon** in the VS Code Activity Bar to open the SkillsBoot Manager.
 
-### 2. Initialize or Import
-* **New**: Scaffold a fresh, reusable Master Instruction.
-* **Import**: Already have skills in your project? SkillsBoot will auto-detect the agent, migrate your skills into the vault, and replace the local copies with managed symlinks.
+### 2. Choose Your Mode (Welcome Screen)
+* **Dedicated Agent Mode**: This is the recommended mode. Select your primary agent to lock the extension globally to that tool, enabling advanced tool-specific features.
+* **Flexible Mode ("Off")**: If you prefer switching agents on the fly, select off. You will be limited to standard features.
 
-### 3. Choose Your Mode
-* **Dedicated Agent Mode**: Select an agent from the top "Dedicated Agent" menu. This locks the extension to one agent, triggering a simple "Apply/Remove" toggle and enabling agent-specific extended features!
-* **Switch Mode**: Select an agent from the dropdown on any instruction card to apply core features. Switch tools at any time.
-
+### 3. Initialize or Import
+* **New**: Scaffold a fresh, reusable Master Instruction. Dropdown is locked if in Dedicated Mode.
+* **Import**: Already have skills in your project? Select your agent and choose exactly which features to import natively.
 
 ### 4. Code!
 Your AI assistant is now supercharged and strictly following your managed standards.

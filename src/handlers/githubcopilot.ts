@@ -30,10 +30,12 @@ export class GithubCopilotHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'githubcopilot',
         displayName: 'GitHub Copilot',
-        root: ['.github', 'AGENTS.md', '.vscode/mcp.json'],
+        root: '.github/copilot-instructions.md',
+        switchPaths: ['.github/', 'AGENTS.md', '.vscode/mcp.json'],
         features: ['Skills', 'AGENTS.md', 'MCP'],
-        // Official website: https://docs.github.com/en/copilot
-        featurePaths: ['.github/copilot-instructions.md']
+        // Official website: https://code.visualstudio.com/docs/agent-customization/overview
+        // rules(.github/copilot-instructions.md), skills(.github/skills/), agents(.github/agents/), prompts(.github/prompts/), instructions(.github/instructions/), hooks(.github/hooks/), mcp(.vscode/mcp.json)   
+        featurePaths: ['.github/copilot-instructions.md', '.github/agents/', '.github/skills/', '.github/prompts/', '.github/instructions/', '.github/skills/', '.github/hooks/', 'AGENTS.md', '.vscode/mcp.json']
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

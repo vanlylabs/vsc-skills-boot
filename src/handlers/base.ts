@@ -8,7 +8,7 @@ export interface InstructionHandler {
     syncSourceToVariant: (sourceBase: string, variantPath: string) => Promise<void>;
     syncVariantToSource: (variantPath: string, sourceBase: string) => Promise<void>;
     scaffold: (targetDir: string, selectedFeatures: string[], embeddedTemplateRoot: string) => Promise<void>;
-    importProject: (projectRoot: string, templatePath: string, variantPath: string, selectedFeatures: string[]) => Promise<void>;
+    importProject: (projectRoot: string, templatePath: string, variantPath: string, selectedFeatures: string[]) => Promise<boolean>;
     detect: (projectRoot: string) => boolean;
 }
 
@@ -40,9 +40,10 @@ export class BaseMcpConfig {
 export interface ToolConfig {
     id: string;
     displayName: string;
-    root: string[];
+    root: string;
+    switchPaths: string[];
     features: ToolFeature[];
-    featurePaths?: string[];
+    featurePaths: string[];
 }
 
 export abstract class BaseHandler implements InstructionHandler {
@@ -50,7 +51,8 @@ export abstract class BaseHandler implements InstructionHandler {
 
     get id(): string { return this.metadata.id; }
     get displayName(): string { return this.metadata.displayName; }
-    get root(): string[] { return this.metadata.root; }
+    get root(): string { return this.metadata.root; }
+    get switchPaths(): string[] { return this.metadata.switchPaths; }
 
     // --- Support Checks ---
     hasFeature(name: ToolFeature): boolean {
@@ -88,29 +90,42 @@ export abstract class BaseHandler implements InstructionHandler {
         await this.applyCanonical(embeddedTemplateRoot, targetDir, features);
     }
 
-    async importProject(projectRoot: string, templatePath: string, variantPath: string, selectedFeatures: string[]): Promise<void> {
+    async importProject(projectRoot: string, templatePath: string, variantPath: string, selectedFeatures: string[]): Promise<boolean> {
         const features = (selectedFeatures && selectedFeatures.length > 0)
             ? (selectedFeatures as ToolFeature[])
             : this.metadata.features;
 
-        // Import project -> Template store (a2b)
-        await this.applyFeatures(templatePath, projectRoot, 'a2b', features);
+        let foundFeatures = false;
 
-        // Update Variant root (b2a)
-        await this.applyFeatures(templatePath, variantPath, 'b2a', features);
+        // 1. Copy all featurePaths directly from project to variantDir
+        for (const fp of this.metadata.featurePaths) {
+            // Strip trailing slash for direct fs operations
+            const isFolder = fp.endsWith('/');
+            const cleanPath = isFolder ? fp.slice(0, -1) : fp;
+            const srcFull = path.join(projectRoot, cleanPath);
+            const dstFull = path.join(variantPath, cleanPath);
+
+            if (fs.existsSync(srcFull)) {
+                foundFeatures = true;
+                if (isFolder) {
+                    copyFolderSync(srcFull, dstFull, true);
+                } else {
+                    if (!fs.existsSync(path.dirname(dstFull))) fs.mkdirSync(path.dirname(dstFull), { recursive: true });
+                    fs.copyFileSync(srcFull, dstFull);
+                }
+            }
+        }
+
+        if (!foundFeatures) return false;
+
+        // 2. Parse out canonical components from variant into template
+        await this.applyFeatures(templatePath, variantPath, 'a2b', features);
+        return true;
     }
 
     detect(projectRoot: string): boolean {
-        // Priority: Tool-specific roots
-        for (const rootPath of this.root) {
-            if (rootPath === 'AGENTS.md') continue;
-            if (fs.existsSync(path.join(projectRoot, rootPath))) return true;
-        }
-        // Fallback: AGENTS.md
-        if (this.root.includes('AGENTS.md')) {
-            if (fs.existsSync(path.join(projectRoot, 'AGENTS.md'))) return true;
-        }
-        return false;
+        const rootStr = this.root.endsWith('/') ? this.root.slice(0, -1) : this.root;
+        return fs.existsSync(path.join(projectRoot, rootStr));
     }
 
     protected async applyCanonical(sourceRoot: string, targetRoot: string, features: ToolFeature[]): Promise<void> {

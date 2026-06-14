@@ -8,16 +8,10 @@ import { storageService } from './storageService';
 
 export class LinkManager {
     private getLinkPaths(config: ToolConfig, agentLockEnabled: boolean): string[] {
-        const paths = [...config.root];
         if (agentLockEnabled && config.featurePaths) {
-            for (const fp of config.featurePaths) {
-                const isSubPath = config.root.some(r => fp.startsWith(r + '/') || fp.startsWith(r + '\\'));
-                if (!isSubPath) {
-                    paths.push(fp);
-                }
-            }
+            return config.featurePaths;
         }
-        return paths;
+        return config.switchPaths;
     }
 
     public async applyLinks(projectRoot: string, instructionId: string, toolId: string, agentLockEnabled: boolean = false): Promise<string[]> {
@@ -26,13 +20,12 @@ export class LinkManager {
 
         const config = handler.getConfig();
         const paths = this.getLinkPaths(config, agentLockEnabled);
-        const expandedRoots: { raw: string, expanded: string }[] = [];
         const conflicts: string[] = [];
 
         for (const rootPath of paths) {
-            const expanded = rootPath.replace('${basename}', instructionId);
-            expandedRoots.push({ raw: rootPath, expanded });
-
+            const isFolder = rootPath.endsWith('/');
+            const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
+            const expanded = cleanPath.replace('${basename}', instructionId);
             const targetPath = path.join(projectRoot, expanded);
             try {
                 const stat = fs.lstatSync(targetPath);
@@ -51,20 +44,21 @@ export class LinkManager {
         const paths = this.getLinkPaths(config, agentLockEnabled);
 
         for (const rootPath of paths) {
-            const expanded = rootPath.replace('${basename}', instructionId);
+            const isFolder = rootPath.endsWith('/');
+            const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
+            const expanded = cleanPath.replace('${basename}', instructionId);
             const targetPath = path.join(projectRoot, expanded);
             const actualSourcePath = path.join(variantDir, expanded);
 
             if (fs.existsSync(actualSourcePath)) {
                 this.removePath(targetPath, true);
 
-                const isDir = fs.statSync(actualSourcePath).isDirectory();
-                const type = os.platform() === 'win32' ? (isDir ? 'junction' : 'file') : (isDir ? 'dir' : 'file');
+                const type = os.platform() === 'win32' ? (isFolder ? 'junction' : 'file') : (isFolder ? 'dir' : 'file');
 
                 const parent = path.dirname(targetPath);
                 if (!fs.existsSync(parent)) fs.mkdirSync(parent, { recursive: true });
 
-                manager.log.info("[SkillsBoot] Linking: {} -> {}", actualSourcePath, targetPath);
+                manager.log.info(`[SkillsBoot] Linking: ${actualSourcePath} -> ${targetPath}`);
                 fs.symlinkSync(actualSourcePath, targetPath, type);
             }
         }
@@ -77,7 +71,9 @@ export class LinkManager {
         const config = handler.getConfig();
         const paths = this.getLinkPaths(config, agentLockEnabled);
         for (const rootPath of paths) {
-            const expanded = rootPath.replace('${basename}', instructionId);
+            const isFolder = rootPath.endsWith('/');
+            const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
+            const expanded = cleanPath.replace('${basename}', instructionId);
             const fullPath = path.join(projectRoot, expanded);
             this.removePath(fullPath, false);
         }
@@ -92,7 +88,9 @@ export class LinkManager {
         const variantDir = storageService.getVariantPath(instructionId, toolId);
 
         for (const rootPath of paths) {
-            const expanded = rootPath.replace('${basename}', instructionId);
+            const isFolder = rootPath.endsWith('/');
+            const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
+            const expanded = cleanPath.replace('${basename}', instructionId);
             const fullPath = path.join(projectRoot, expanded);
             const sourcePath = path.join(variantDir, expanded);
             try {

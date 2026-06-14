@@ -27,10 +27,13 @@ export class CursorHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'cursor',
         displayName: 'Cursor',
-        root: ['.cursor', 'AGENTS.md', '.cursor/mcp.json'],
+        root: '.cursor/',
+        switchPaths: ['.cursor/', 'AGENTS.md', '.cursor/mcp.json'],
         features: ['Skills', 'AGENTS.md', 'MCP'],
-        // Official website: https://docs.cursor.com/
-        featurePaths: ['.cursor/rules']
+        // Official website: https://cursor.com/docs
+        // rules(.cursor/rules), skills(.cursor/skills/), subagents(.cursor/agents/) , hook(.cursor/hooks.json), mcp(.cursor/mcp.json)
+        featurePaths: ['.cursor/', 'AGENTS.md']
+        // Not supported: plugin(? .cursor-plugin/plugin.json)
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

@@ -4,7 +4,7 @@
     --input-padding-horizontal: 11px;
     --input-margin-vertical: 3px;
     --input-margin-horizontal: 3px;
-    --control-height: 22px;
+    --control-height: 20px;
 }
 
 body {
@@ -316,30 +316,27 @@ label {
 }
 
 /* Compact vscode-button sizing */
-vscode-button {
+vscode-button:not([appearance="icon"]) {
     --vscode-button-padding-vertical: 1px;
-    --vscode-button-padding-horizontal: 10px;
+    --vscode-button-padding-horizontal: 8px;
 }
 
-vscode-button::part(control) {
+vscode-button:not([appearance="icon"])::part(control) {
     min-height: var(--control-height);
     height: var(--control-height);
-    padding: 1px 10px;
-    font-size: 12px;
+    padding: 0 8px;
+    font-size: 10px;
+}
+
+vscode-button[appearance="icon"]::part(control) {
+    min-height: var(--control-height);
+    height: var(--control-height);
+    width: var(--control-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 vscode-button.btn-apply-toggle {
-    min-width: 80px;
-}
-
-/* Compact vscode-button sizing */
-vscode-button {
-    --vscode-button-padding-vertical: 1px;
-    --vscode-button-padding-horizontal: 10px;
-}
-
-vscode-button::part(control) {
-    min-height: 24px;
-    padding: 1px 10px;
-    font-size: 12px;
+    min-width: 70px;
 }

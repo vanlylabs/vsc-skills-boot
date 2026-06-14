@@ -88,6 +88,10 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
                             await this._handleApply(data.id, lockState.toolId);
                         }
                         break;
+                    case 'welcomeDone':
+                        await stateService.setFirstRunDone(true);
+                        await this.refresh();
+                        break;
                 }
             } catch (err: any) {
                 manager.log.error(`[SkillsBoot] Error handling ${data.type}: ${err.message}`);
@@ -225,7 +229,15 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         fs.mkdirSync(templatePath, { recursive: true });
         fs.mkdirSync(variantPath, { recursive: true });
 
-        await handlers[toolId].importProject(projectRoot, templatePath, variantPath, features);
+        const importedAny = await handlers[toolId].importProject(projectRoot, templatePath, variantPath, features);
+        
+        if (!importedAny) {
+            fs.rmSync(templatePath, { recursive: true, force: true });
+            fs.rmSync(variantPath, { recursive: true, force: true });
+            this._view?.webview.postMessage({ type: 'createError', message: 'No recognizable instruction found in current project.' });
+            return;
+        }
+
         fs.writeFileSync(path.join(templatePath, 'description.md'), description);
 
         await this._handleApply(name, toolId);
@@ -295,6 +307,11 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
             selected: selected,
             agentLock: agentLock
         });
+
+        // Trigger welcome page if first run
+        if (!stateService.getFirstRunDone()) {
+            this._view.webview.postMessage({ type: 'showWelcome' });
+        }
     }
 
     private _getProjectRoot(): string | undefined {

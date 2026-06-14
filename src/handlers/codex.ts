@@ -44,10 +44,12 @@ export class CodexHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'codex',
         displayName: 'Codex',
-        root: ['.agents', 'AGENTS.md', '.codex/config.toml'],
+        root: '.agents/',
+        switchPaths: ['.agents/', 'AGENTS.md', '.codex/config.toml'],
         features: ['Skills', 'AGENTS.md', 'MCP'],
-        // Official website: https://sourcegraph.com/docs/cody
-        featurePaths: ['.agents/agents', '.cody/rules']
+        // Official website:https://developers.openai.com/codex/
+        // skills (agents/skills), agents(.codex/agents/), mcp(.codex/config.toml), hook(.codex/hooks.json, .codex/config.toml), rules(.codex/rules/)
+        featurePaths: ['.agents/', 'AGENTS.md', '.codex/',]
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {

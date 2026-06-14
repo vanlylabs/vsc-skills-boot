@@ -27,10 +27,13 @@ export class ClaudeCodeHandler extends BaseHandler {
     metadata: ToolConfig = {
         id: 'claudecode',
         displayName: 'Claude Code',
-        root: ['.claude', 'CLAUDE.md', '.mcp.json'],
+        root: '.claude/',
+        switchPaths: ['.claude/', 'CLAUDE.md', '.mcp.json'],
         features: ['Skills', 'AGENTS.md', 'MCP'],
-        // Official website: https://docs.anthropic.com/en/docs/claude-code
-        featurePaths: ['.claude/commands', '.claude.json']
+        // Official website: https://code.claude.com/docs
+        // CLAUDE.md(CLAUDE.md or ./.claude/CLAUDE.md), rules(.claude/rules/), Skills(.claude/skills/), MCP(.mcp.json), Agent(.claude/agents/), hooks(.claude/settings.json)
+        featurePaths: ['.claude.json', '.claude/', 'CLAUDE.md', '.mcp.json']
+        // NOT supported: agent teams (not supported in project level), plugins(?)
     };
 
     async applySkills(sourceRoot: string, targetRoot: string, direction: 'b2a' | 'a2b'): Promise<void> {
