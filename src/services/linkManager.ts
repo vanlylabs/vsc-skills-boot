@@ -21,12 +21,19 @@ export class LinkManager {
         const config = handler.getConfig();
         const paths = this.getLinkPaths(config, agentLockEnabled);
         const conflicts: string[] = [];
+        const variantDir = storageService.getVariantPath(instructionId, toolId);
 
         for (const rootPath of paths) {
             const isFolder = rootPath.endsWith('/');
             const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
             const expanded = cleanPath.replace('${basename}', instructionId);
             const targetPath = path.join(projectRoot, expanded);
+            const sourcePath = path.join(variantDir, expanded);
+
+            // Only flag a conflict if the source actually exists in the variant
+            // (i.e., a symlink will be created). If source doesn't exist, no replacement happens.
+            if (!fs.existsSync(sourcePath)) continue;
+
             try {
                 const stat = fs.lstatSync(targetPath);
                 if (!stat.isSymbolicLink()) {
@@ -94,7 +101,14 @@ export class LinkManager {
             const fullPath = path.join(projectRoot, expanded);
             const sourcePath = path.join(variantDir, expanded);
             try {
-                if (!fs.lstatSync(fullPath).isSymbolicLink()) return false;
+                const stat = fs.lstatSync(fullPath);
+                if (!stat.isSymbolicLink()) {
+                    // Path exists but is not a symlink.
+                    // Only fail if the variant source exists (meaning we should have symlinked it).
+                    if (fs.existsSync(sourcePath)) return false;
+                    // Source doesn't exist → this path is not managed by SkillsBoot → skip
+                    continue;
+                }
             } catch (e) {
                 // Path doesn't exist in project — only fail if the source exists
                 // (meaning a symlink should have been created but wasn't)
@@ -104,6 +118,34 @@ export class LinkManager {
             }
         }
         return true;
+    }
+
+    public async applyLinksForImport(projectRoot: string, instructionId: string, toolId: string, agentLockEnabled: boolean, features: string[]): Promise<string[]> {
+        const handler = handlers[toolId];
+        if (!handler) throw new Error(`Handler for ${toolId} not found`);
+
+        const config = handler.getConfig();
+        // For import/convert, we generally care about featurePaths since that's what importProject uses
+        const paths = config.featurePaths;
+        const conflicts: string[] = [];
+
+        for (const rootPath of paths) {
+            const isFolder = rootPath.endsWith('/');
+            const cleanPath = isFolder ? rootPath.slice(0, -1) : rootPath;
+            const expanded = cleanPath.replace('${basename}', instructionId);
+            const targetPath = path.join(projectRoot, expanded);
+
+            try {
+                if (fs.existsSync(targetPath)) {
+                    const stat = fs.lstatSync(targetPath);
+                    if (!stat.isSymbolicLink()) {
+                        conflicts.push(expanded);
+                    }
+                }
+            } catch (e) { }
+        }
+
+        return conflicts;
     }
 
     private removePath(fullPath: string, allowDelete: boolean = false) {

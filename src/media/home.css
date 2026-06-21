@@ -316,25 +316,16 @@ label {
 }
 
 /* Compact vscode-button sizing */
-vscode-button:not([appearance="icon"]) {
+vscode-button {
     --vscode-button-padding-vertical: 1px;
     --vscode-button-padding-horizontal: 8px;
 }
 
-vscode-button:not([appearance="icon"])::part(control) {
+vscode-button::part(control) {
     min-height: var(--control-height);
     height: var(--control-height);
     padding: 0 8px;
     font-size: 10px;
-}
-
-vscode-button[appearance="icon"]::part(control) {
-    min-height: var(--control-height);
-    height: var(--control-height);
-    width: var(--control-height);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 vscode-button.btn-apply-toggle {

@@ -32,6 +32,8 @@
     const formTitle = document.getElementById('form-title');
     const saveButtonText = document.getElementById('save-button-text');
     const creationGuidance = document.getElementById('creation-guidance');
+    const loadConvertContainer = document.getElementById('load-convert-container');
+    const checkboxLoadConvert = document.getElementById('inst-load-convert');
 
     // Welcome Page Elements
     const welcomeAgentSelect = document.getElementById('welcome-agent-select');
@@ -124,6 +126,12 @@
             typeContainer.classList.add('hidden');
             mappingContainer.classList.add('hidden');
             creationGuidance.classList.add('hidden');
+            if (mode === 'edit' && data.isActive) {
+                loadConvertContainer.classList.remove('hidden');
+            } else {
+                loadConvertContainer.classList.add('hidden');
+            }
+            if (checkboxLoadConvert) checkboxLoadConvert.checked = false;
         }
 
         validateForm();
@@ -175,6 +183,8 @@
         nameError.style.display = 'none';
         btnSave.disabled = true;
         creationGuidance.classList.add('hidden');
+        loadConvertContainer.classList.add('hidden');
+        if (checkboxLoadConvert) checkboxLoadConvert.checked = false;
         formMode = mode;
         editingInstructionId = id;
     }
@@ -267,7 +277,8 @@
                     type: 'edit',
                     id: editingInstructionId,
                     name,
-                    description
+                    description,
+                    loadAndConvert: checkboxLoadConvert ? checkboxLoadConvert.checked : false
                 });
                 break;
             case 'duplicate':
@@ -322,13 +333,15 @@
             const instructionId = editBtn.dataset.instructionId;
             const instructionName = editBtn.dataset.instructionName;
             const instructionDesc = editBtn.dataset.instructionDesc;
+            const isActive = editBtn.dataset.isActive === 'true';
             console.log('[SkillsBoot] Edit button clicked for:', instructionId);
             e.stopPropagation();
             e.preventDefault();
             openForm('edit', {
                 id: instructionId,
                 name: instructionName,
-                description: instructionDesc
+                description: instructionDesc,
+                isActive: isActive
             });
         }
     });
@@ -532,7 +545,7 @@
                             <option value="unlinked" ${!isActive ? 'selected' : ''}>None</option>
                         </select>
                     `}
-                    <button class="icon-btn btn-edit" data-instruction-id="${inst.id}" data-instruction-name="${name}" data-instruction-desc="${desc}" title="Edit this instruction">
+                    <button class="icon-btn btn-edit" data-instruction-id="${inst.id}" data-instruction-name="${name}" data-instruction-desc="${desc}" data-is-active="${isActive}" title="Edit this instruction">
                         ✎
                     </button>
                     <button class="icon-btn btn-duplicate" data-instruction-id="${inst.id}" data-instruction-name="${name}" data-instruction-desc="${desc}" title="Duplicate this instruction">

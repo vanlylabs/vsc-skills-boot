@@ -77,7 +77,7 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
                     case 'apply': await this._handleApply(data.id, data.toolId); break;
                     case 'unlink': await this._handleUnlink(); break;
                     case 'delete': await this._handleDelete(data.id); break;
-                    case 'edit': await this._handleEdit(data.id, data.name, data.description); break;
+                    case 'edit': await this._handleEdit(data.id, data.name, data.description, data.loadAndConvert); break;
                     case 'duplicate': await this._handleDuplicate(data.sourceId, data.name, data.description); break;
                     case 'detectInstructions': await this._handleDetectInstructions(); break;
                     case 'import': await this._handleImport(data.name, data.description, data.toolId, data.features); break;
@@ -136,8 +136,10 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
 
         await stateService.setActiveState(undefined, undefined);
         this._onInstructionUnlinked();
-        await this.refresh();
-        if (!silent) vscode.window.showInformationMessage('Unlinked instruction.');
+        if (!silent) {
+            await this.refresh();
+            vscode.window.showInformationMessage('Unlinked instruction.');
+        }
     }
 
     private async _handleDelete(id: string) {
@@ -157,7 +159,7 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         vscode.window.showInformationMessage(`Instruction "${id}" deleted.`);
     }
 
-    private async _handleEdit(id: string, newName: string, newDescription: string) {
+    private async _handleEdit(id: string, newName: string, newDescription: string, loadAndConvert?: boolean) {
         const oldDir = storageService.getTemplatePath(id);
         if (!fs.existsSync(oldDir)) throw new Error(`Instruction ${id} not found`);
 
@@ -165,6 +167,8 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         const wasActive = activeState?.id === id;
         const activeToolId = activeState?.toolId;
 
+        // Note: _handleUnlink(true) replaces symlinks with physical files in the project workspace,
+        // allowing us to read them cleanly.
         if (wasActive) await this._handleUnlink(true);
 
         const newDir = storageService.getTemplatePath(newName);
@@ -181,6 +185,33 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         fs.writeFileSync(path.join(newDir, 'description.md'), newDescription);
 
         if (wasActive && activeToolId) {
+            if (loadAndConvert) {
+                const projectRoot = this._getProjectRoot();
+                if (projectRoot) {
+                    const agentLockEnabled = !!stateService.getAgentLock()?.enabled;
+                    const templatePath = storageService.getTemplatePath(newName);
+                    const variantPath = storageService.getVariantPath(newName, activeToolId);
+
+                    // Check conflicts BEFORE importing — if user cancels, don't touch the repo.
+                    const tool = handlers[activeToolId];
+                    const tempConflicts = await linkManager.applyLinksForImport(
+                        projectRoot, newName, activeToolId, agentLockEnabled, tool.getConfig().features
+                    );
+                    if (tempConflicts.length > 0) {
+                        const msg = `SkillsBoot will move these paths into the repo and replace them with links:\n\n${tempConflicts.join('\n')}\n\nProceed?`;
+                        const answer = await vscode.window.showWarningMessage(msg, { modal: true }, 'Proceed');
+                        if (answer !== 'Proceed') {
+                            // User cancelled — re-apply original links and stop
+                            await this._handleApply(newName, activeToolId);
+                            await this.refresh();
+                            vscode.window.showInformationMessage('Instruction updated (load & convert skipped).');
+                            return;
+                        }
+                    }
+
+                    await tool.importProject(projectRoot, templatePath, variantPath, tool.getConfig().features);
+                }
+            }
             await this._handleApply(newName, activeToolId);
         }
 
@@ -293,9 +324,12 @@ class SkillsBootViewProvider implements vscode.WebviewViewProvider {
         const agentLock = stateService.getAgentLock();
         const projectRoot = this._getProjectRoot();
 
-        // Validation: If state says applied but links are missing, treat as unapplied in UI
+        // Validation: If state says applied but links are missing, clean up orphaned symlinks
         if (selected && projectRoot) {
             if (!linkManager.verifyLinks(projectRoot, selected.id, selected.toolId, !!agentLock?.enabled)) {
+                // Clean up any remaining orphaned symlinks from the project
+                linkManager.unlinkTool(projectRoot, selected.id, selected.toolId, !!agentLock?.enabled);
+                await stateService.setActiveState(undefined, undefined);
                 selected = undefined;
             }
         }

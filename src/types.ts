@@ -17,7 +17,7 @@ export type WebviewMessage =
     | { type: 'apply', id: string, toolId: string }
     | { type: 'unlink' }
     | { type: 'delete', id: string }
-    | { type: 'edit', id: string, name: string, description: string }
+    | { type: 'edit', id: string, name: string, description: string, loadAndConvert?: boolean }
     | { type: 'duplicate', sourceId: string, name: string, description: string }
     | { type: 'detectInstructions' }
     | { type: 'import', name: string, description: string, toolId: string, features: string[] }
